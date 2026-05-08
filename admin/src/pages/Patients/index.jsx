@@ -202,9 +202,9 @@ export default function Patients() {
         </div>
       </section>
 
-      <button type="button" className="patients-floating-button">
+      {/* <button type="button" className="patients-floating-button">
         <LuPlus size={26} />
-      </button>
+      </button> */}
     </main>
   );
 }

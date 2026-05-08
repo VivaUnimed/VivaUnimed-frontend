@@ -38,10 +38,10 @@ export default function Sidebar() {
             <span>Agenda</span>
           </NavLink>
 
-          <NavLink to="/vacancies" className="sidebar__link">
+          {/* <NavLink to="/vacancies" className="sidebar__link">
             <LuCalendarPlus className="sidebar__icon" />
             <span>Vagas</span>
-          </NavLink>
+          </NavLink> */}
 
           <NavLink to="/patients" className="sidebar__link">
             <LuUsers className="sidebar__icon" />
