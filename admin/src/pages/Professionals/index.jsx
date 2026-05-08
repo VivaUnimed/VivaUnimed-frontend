@@ -70,42 +70,6 @@ export default function Professionals() {
       </section>
 
       <section className="professionals-content">
-        <aside className="professionals-sidebar">
-          <div className="stats-card">
-            <span className="stats-card__label">TOTAL DE ATIVOS</span>
-            <strong>142</strong>
-            <p>↗ +12 novos este mês</p>
-          </div>
-
-          <div className="specialties-card">
-            <h2>Especialidades em Alta</h2>
-
-            <div className="specialty-item">
-              <div className="specialty-item__icon">
-                <LuStethoscope size={16} />
-              </div>
-              <span>Cardiologia</span>
-              <strong>24 Prof.</strong>
-            </div>
-
-            <div className="specialty-item">
-              <div className="specialty-item__icon">
-                <LuBrain size={16} />
-              </div>
-              <span>Neurologia</span>
-              <strong>18 Prof.</strong>
-            </div>
-
-            <div className="specialty-item">
-              <div className="specialty-item__icon">
-                <LuBaby size={16} />
-              </div>
-              <span>Pediatria</span>
-              <strong>31 Prof.</strong>
-            </div>
-          </div>
-        </aside>
-
         <div className="professionals-table-card">
           <div className="professionals-table-card__header">
             <h2>Lista de Profissionais</h2>
@@ -237,7 +201,7 @@ export default function Professionals() {
             </label>
 
             <label>
-              E-mail Institucional
+              E-mail Corporativo
               <input type="email" placeholder="nome@unimed.com" />
             </label>
 
@@ -251,7 +215,7 @@ export default function Professionals() {
             <h3>ATUAÇÃO PROFISSIONAL</h3>
 
             <label>
-              Especialidade Principal
+              Especialidade
               <select defaultValue="">
                 <option value="" disabled>
                   Selecione uma especialidade

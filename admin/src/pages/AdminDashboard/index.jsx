@@ -7,72 +7,37 @@ import {
   LuChevronDown,
   LuSparkles,
   LuBuilding,
+  LuChartColumn,
 } from 'react-icons/lu';
 import './styles.css';
+import { VscGraph } from 'react-icons/vsc';
 
 const summaryCards = [
   {
     id: 1,
-    title: 'Total de Consultas',
+    title: 'Atendimentos Hoje',
     value: '1.284',
-    description: 'Referente ao mês atual',
+    description: 'Meta diária: 50 atendimentos',
     icon: LuCalendarDays,
     variant: 'green',
     badge: '+12%',
   },
   {
     id: 2,
-    title: 'Vagas Disponíveis',
-    value: '42',
-    description: 'Disponibilidade imediata',
-    icon: LuClipboard,
+    title: 'Taxa de Ocupação',
+    value: '84%',
+    description: '',
+    icon: LuChartColumn,
     variant: 'light-green',
   },
   {
     id: 3,
-    title: 'Taxa de No-show',
-    value: '8,4%',
-    description: 'Absenteísmo consolidado',
+    title: 'No-show (Hoje)',
+    value: '03',
+    description: 'Taxa de falta: 7.1% da agenda',
     icon: LuTriangleAlert,
     variant: 'red',
     badge: '-3%',
-  },
-  {
-    id: 4,
-    title: 'Vagas Preenchidas e hoje',
-    value: '156',
-    description: 'Meta diária: 180',
-    icon: LuSquareCheck,
-    variant: 'dark-green',
-  },
-];
-
-const idleSlots = [
-  {
-    id: 1,
-    name: 'Dra. Helena Martins',
-    info: 'Cardiologia • 08:30 - 09:00',
-    status: 'CANCELADO HÁ 15M',
-    avatar:
-      'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=80&h=80&fit=crop&crop=face',
-    danger: true,
-  },
-  {
-    id: 2,
-    name: 'Dr. Marcos Oliveira',
-    info: 'Ortopedia • 10:15 - 10:45',
-    status: 'SEM AGENDAMENTO',
-    avatar:
-      'https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=80&h=80&fit=crop&crop=face',
-  },
-  {
-    id: 3,
-    name: 'Dra. Ana Paula',
-    info: 'Pediatria • 11:30 - 12:00',
-    status: 'NO-SHOW DETECTADO',
-    avatar:
-      'https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=80&h=80&fit=crop&crop=face',
-    danger: true,
   },
 ];
 
@@ -97,18 +62,42 @@ const priorities = [
   },
 ];
 
+const nextSchedules = [
+  {
+    id: 1,
+    time: '14:30',
+    patient: 'Clara Magalhães',
+    doctor: 'Dra. Helena Costa',
+    category: 'Geral',
+  },
+  {
+    id: 2,
+    time: '15:00',
+    patient: 'Roberto Alvim',
+    doctor: 'Dr. Marcos Dias',
+    category: 'Exame',
+  },
+  {
+    id: 3,
+    time: '15:45',
+    patient: 'Sônia Mendes',
+    doctor: 'Dra. Helena Costa',
+    category: 'Retorno',
+  },
+];
+
 export default function StrategicDashboard() {
   return (
     <main className="strategic-dashboard-page">
       <section className="strategic-dashboard-header">
         <div>
-          <h1>Dashboard Estratégico</h1>
+          <h1>Dashboard</h1>
           <p>Visão consolidada da operação VivaUnimed em tempo real.</p>
         </div>
 
         <div className="strategic-dashboard-date">
           <LuCalendarDays size={14} />
-          <span>e hoje: 24 de Maio, 2024</span>
+          <span>24 de Maio, 2024</span>
         </div>
       </section>
 
@@ -141,120 +130,29 @@ export default function StrategicDashboard() {
         })}
       </section>
 
-      <section className="strategic-main-grid">
-        <div className="absence-history-card">
-          <div className="absence-history-card__header">
-            <div>
-              <h2>Histórico de Faltas</h2>
-              <p>Análise de absenteísmo nos últimos 7 dias</p>
-            </div>
+      <section className="strategic-bottom-grid">
 
-            <button type="button">
-              Semana Atual
-              <LuChevronDown size={14} />
-            </button>
+        <div className="schedules-card">
+          <div className="schedules-card__header">
+            <h2>Próximos Horários</h2>
+            <p>Fila de espera ativa para hoje</p>
           </div>
 
-          <div className="absence-chart">
-            <div className="absence-chart__line" />
-            <div className="absence-chart__line" />
-            <div className="absence-chart__line" />
-
-            <div className="absence-chart__labels">
-              <span>SEG</span>
-              <span>TER</span>
-              <span className="active">QUA</span>
-              <span>QUI</span>
-              <span>SEX</span>
-              <span>SAB</span>
-              <span>DOM</span>
-            </div>
-          </div>
-        </div>
-
-        <aside className="dashboard-idle-slots-card">
-          <div className="dashboard-idle-slots-card__title">
-            <LuTriangleAlert size={18} />
-            <h2>Vagas Ociosas</h2>
-          </div>
-
-          <div className="dashboard-idle-slots-list">
-            {idleSlots.map((item) => (
-              <div key={item.id} className="dashboard-idle-slot-item">
-                <img src={item.avatar} alt={item.name} />
-
-                <div>
-                  <strong>{item.name}</strong>
-                  <span>{item.info}</span>
-                  <small className={item.danger ? 'danger' : ''}>
-                    {item.status}
-                  </small>
+          <div className="schedules-list">
+            {nextSchedules.map((item) => (
+              <div key={item.id} className="schedule-item">
+                <div className="schedule-item__time">{item.time}</div>
+                <div className="schedule-item__info">
+                  <strong>{item.patient}</strong>
+                  <span>
+                    {item.doctor} • {item.category}
+                  </span>
                 </div>
               </div>
             ))}
           </div>
-
-          <button type="button" className="dashboard-idle-slots-card__button">
-            VER TODAS AS OCORRÊNCIAS
-          </button>
-        </aside>
-      </section>
-
-      <section className="strategic-bottom-grid">
-        <div className="optimization-card">
-          <div className="optimization-card__content">
-            <span>DESTAQUE OPERACIONAL</span>
-
-            <h2>
-              Otimização de
-              <br />
-              Agenda em Tempo
-              <br />
-              Real
-            </h2>
-
-            <p>
-              Nossa IA identificou 5 janelas de oportunidade para remanejamento
-              de pacientes da fila de espera para as vagas ociosas de hoje.
-            </p>
-
-            <button type="button">Executar Remanejamento</button>
-          </div>
-
-          <div className="optimization-card__icon">
-            <LuSparkles size={40} />
-          </div>
-        </div>
-
-        <div className="priorities-card">
-          <h2>Próximas Prioridades</h2>
-
-          <div className="priorities-list">
-            {priorities.map((priority) => (
-              <div key={priority.id} className="priority-item">
-                <span className={`priority-dot priority-dot--${priority.status}`} />
-                <p>{priority.title}</p>
-                <strong>{priority.time}</strong>
-              </div>
-            ))}
-          </div>
-
-          <div className="unit-status">
-            <div className="unit-status__image">
-              <LuBuilding size={36} />
-            </div>
-
-            <div>
-              <strong>Unidade Litoral Sul</strong>
-              <span>Status: Operação Normal</span>
-            </div>
-          </div>
         </div>
       </section>
-
-      <button type="button" className="strategic-floating-button">
-        <LuPlus size={26} />
-      </button>
     </main>
   );
 }

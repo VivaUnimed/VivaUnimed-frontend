@@ -114,7 +114,7 @@ export default function WeeklySchedule() {
           </div>
         </aside>
 
-        <div className="schedule-indicators">
+        {/* <div className="schedule-indicators">
           <div className="schedule-indicator-card schedule-indicator-card--occupancy">
             <LuChartColumn size={22} />
             <strong>84%</strong>
@@ -132,7 +132,7 @@ export default function WeeklySchedule() {
             <strong>08</strong>
             <span>CANCELAMENTOS</span>
           </div>
-        </div>
+        </div> */}
       </section>
 
       <section className="weekly-calendar-card">

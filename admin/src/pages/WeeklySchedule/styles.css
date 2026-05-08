@@ -85,9 +85,6 @@
 }
 
 .weekly-schedule-top {
-  display: grid;
-  grid-template-columns: 360px 1fr;
-  gap: 28px;
   margin-bottom: 36px;
 }
 

@@ -202,39 +202,6 @@ export default function Patients() {
         </div>
       </section>
 
-      <section className="patients-bottom-grid">
-        <div className="retention-card">
-          <div className="retention-card__icon">
-            <LuChartBar size={34} />
-          </div>
-
-          <div>
-            <h2>Análise de Retenção</h2>
-
-            <p>
-              Nosso sistema de IA identificou um aumento de 15% na taxa de retorno
-              para consultas preventivas. Continue utilizando as notificações automáticas
-              para manter seus pacientes engajados.
-            </p>
-
-            <button type="button">Ver Dashboard de Performance →</button>
-          </div>
-        </div>
-
-        <div className="clinical-support-card">
-          <LuMessagesSquare size={28} />
-
-          <h2>Suporte Clínico</h2>
-
-          <p>
-            Precisa de ajuda com a integração de prontuários antigos? Nossa equipe está
-            pronta.
-          </p>
-
-          <button type="button">Falar com Consultor</button>
-        </div>
-      </section>
-
       <button type="button" className="patients-floating-button">
         <LuPlus size={26} />
       </button>

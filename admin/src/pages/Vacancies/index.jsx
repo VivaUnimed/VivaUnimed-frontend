@@ -80,18 +80,10 @@ export default function Vacancies() {
           <h1>Vagas Ociosas</h1>
           <p>Gestão inteligente de desistências e otimização de agenda.</p>
         </div>
-
-        <div className="system-status">
-          <span>STATUS DO SISTEMA</span>
-          <strong>
-            <span className="system-status__dot" />
-            Monitoramento Ativo
-          </strong>
-        </div>
       </section>
 
       <section className="idle-slots-main-grid">
-        <aside className="idle-slots-left">
+        {/* <aside className="idle-slots-left">
           <div className="instant-register-card">
             <div className="instant-register-card__circle" />
 
@@ -148,7 +140,7 @@ export default function Vacancies() {
               </div>
             ))}
           </div>
-        </aside>
+        </aside> */}
 
         <section className="idle-slots-right">
           <div className="generated-slots-card">
@@ -226,37 +218,6 @@ export default function Vacancies() {
                   ))}
                 </tbody>
               </table>
-            </div>
-          </div>
-
-          <div className="automation-card">
-            <div className="automation-card__left">
-              <div className="automation-card__icon">
-                <LuHistory size={42} />
-              </div>
-
-              <div>
-                <h2>
-                  Automação de
-                  <br />
-                  Fila de Espera
-                </h2>
-
-                <p>
-                  O sistema identifica automaticamente os próximos pacientes na
-                  fila de espera prioritária e dispara notificações via WhatsApp
-                  e SMS assim que uma vaga é liberada.
-                </p>
-              </div>
-            </div>
-
-            <div className="automation-card__right">
-              <button type="button">
-                <LuZap size={20} />
-                Disparar Notificações para Fila
-              </button>
-
-              <span>ÚLTIMO DISPARO GLOBAL: HÁ 14 MIN</span>
             </div>
           </div>
         </section>

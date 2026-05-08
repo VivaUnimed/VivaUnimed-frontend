@@ -65,9 +65,9 @@
 }
 
 .idle-slots-main-grid {
-  display: grid;
+  /* display: grid;
   grid-template-columns: 280px 1fr;
-  gap: 24px;
+  gap: 24px; */
 }
 
 .idle-slots-left {

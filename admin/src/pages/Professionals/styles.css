@@ -49,9 +49,6 @@
 }
 
 .professionals-content {
-  display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: 24px;
   margin-bottom: 36px;
 }
 
@@ -154,6 +151,7 @@
 }
 
 .professionals-table-card {
+  width: 100%;
   min-width: 0;
   height: 514px;
   padding: 30px 30px 24px;
