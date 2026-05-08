@@ -69,7 +69,7 @@ export default function Patients() {
           <p>Visualize a lista completa e histórico de usuários confirmados no sistema.</p>
         </div>
 
-        <div className="patients-header__actions">
+        {/* <div className="patients-header__actions">
           <button type="button">
             <LuSlidersHorizontal size={14} />
             Filtros Avançados
@@ -79,7 +79,7 @@ export default function Patients() {
             <LuDownload size={14} />
             Exportar Relatório
           </button>
-        </div>
+        </div> */}
       </section>
 
       <section className="patients-stats">
@@ -98,7 +98,7 @@ export default function Patients() {
           </p>
         </div>
 
-        <div className="patient-stat-card">
+        <div className="patient-stat-card patient-stat-card--highlight">
           <span>ATENDIMENTOS HOJE</span>
           <strong>156</strong>
           <p className='patient-stat-card-check'>
@@ -107,11 +107,11 @@ export default function Patients() {
           </p>
         </div>
 
-        <div className="patient-stat-card patient-stat-card--highlight">
+        {/* <div className="patient-stat-card patient-stat-card--highlight">
           <span>NOVOS ESTE MÊS</span>
           <strong>89</strong>
           <p>Crescimento constante</p>
-        </div>
+        </div> */}
       </section>
 
       <section className="patients-table-card">

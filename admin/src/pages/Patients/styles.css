@@ -29,34 +29,10 @@
   color: #5f6368;
 }
 
-.patients-header__actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.patients-header__actions button {
-  height: 40px;
-  padding: 0 16px;
-  border: 1px solid #ece7e3;
-  border-radius: 8px;
-  background-color: #ffffff;
-  color: #202124;
-  font-size: 12px;
-  font-weight: 800;
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  cursor: pointer;
-}
-
-.patients-header__actions button > svg {
-  stroke: #202124;
-}
-
+/* Stats Section */
 .patients-stats {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr); /* Ajustado para 3 colunas conforme o JSX atual */
   gap: 24px;
   margin-bottom: 28px;
 }
@@ -141,6 +117,7 @@
   z-index: 2;
 }
 
+/* Table Section */
 .patients-table-card {
   padding: 0 30px 22px;
   border-radius: 14px;
@@ -176,30 +153,11 @@
   color: #6b7280;
 }
 
-.patients-table th:nth-child(1),
-.patients-table td:nth-child(1) {
-  width: 30%;
-}
-
-.patients-table th:nth-child(2),
-.patients-table td:nth-child(2) {
-  width: 20%;
-}
-
-.patients-table th:nth-child(3),
-.patients-table td:nth-child(3) {
-  width: 13%;
-}
-
-.patients-table th:nth-child(4),
-.patients-table td:nth-child(4) {
-  width: 24%;
-}
-
-.patients-table th:nth-child(5),
-.patients-table td:nth-child(5) {
-  width: 13%;
-}
+.patients-table th:nth-child(1), .patients-table td:nth-child(1) { width: 30%; }
+.patients-table th:nth-child(2), .patients-table td:nth-child(2) { width: 20%; }
+.patients-table th:nth-child(3), .patients-table td:nth-child(3) { width: 13%; }
+.patients-table th:nth-child(4), .patients-table td:nth-child(4) { width: 24%; }
+.patients-table th:nth-child(5), .patients-table td:nth-child(5) { width: 13%; }
 
 .patients-table tbody tr {
   height: 74px;
@@ -230,7 +188,6 @@
 }
 
 .patient-info strong {
-  width: 150px;
   display: block;
   margin-bottom: 3px;
   font-size: 12px;
@@ -253,7 +210,6 @@
   font-size: 11px;
   line-height: 14px;
   font-weight: 800;
-  color: #202124;
   color: #6a6d74;
 }
 
@@ -312,6 +268,7 @@
   cursor: pointer;
 }
 
+/* Footer & Pagination */
 .patients-table-card__footer {
   height: 40px;
   display: flex;
@@ -347,105 +304,7 @@
   color: #ffffff;
 }
 
-.patients-bottom-grid {
-  display: grid;
-  grid-template-columns: 1fr 240px;
-  gap: 28px;
-  align-items: stretch;
-}
-
-.retention-card {
-  min-height: 190px;
-  padding: 36px 34px;
-  border-radius: 14px;
-  background-color: #ffffff;
-  box-shadow: 0 10px 30px rgba(31, 41, 51, 0.04);
-  display: flex;
-  align-items: center;
-  gap: 34px;
-}
-
-.retention-card__icon {
-  width: 86px;
-  height: 86px;
-  border-radius: 12px;
-  background-color: #91f0bd;
-  color: #007a49;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.retention-card__icon > svg {
-  stroke: #007a49;
-}
-
-.retention-card h2 {
-  margin: 0 0 12px;
-  font-size: 19px;
-  line-height: 24px;
-  font-weight: 800;
-  color: #202124;
-}
-
-.retention-card p {
-  max-width: 540px;
-  margin: 0 0 18px;
-  font-size: 12px;
-  line-height: 20px;
-  color: #5f6368;
-}
-
-.retention-card button {
-  border: none;
-  background-color: transparent;
-  color: #008256;
-  font-size: 12px;
-  font-weight: 900;
-  cursor: pointer;
-}
-
-.clinical-support-card {
-  min-height: 190px;
-  padding: 32px 28px 24px;
-  border-radius: 14px;
-  background-color: #008256;
-  color: #ffffff;
-  box-shadow: 0 12px 24px rgba(0, 127, 79, 0.22);
-}
-
-.clinical-support-card > svg {
-  stroke: #ffffff;
-}
-
-.clinical-support-card h2 {
-  margin: 20px 0 10px;
-  font-size: 17px;
-  line-height: 22px;
-  font-weight: 800;
-  color: white;
-}
-
-.clinical-support-card p {
-  margin: 0 0 22px;
-  font-size: 12px;
-  line-height: 19px;
-  color: #d7f7e7;
-}
-
-.clinical-support-card button {
-  width: 100%;
-  height: 38px;
-  border: none;
-  border-radius: 8px;
-  background-color: #ffffff;
-  color: #008256;
-  font-size: 12px;
-  font-weight: 900;
-  cursor: pointer;
-}
-
+/* Floating Action Button */
 .patients-floating-button {
   width: 54px;
   height: 54px;
@@ -467,17 +326,10 @@
   stroke: #ffffff;
 }
 
+/* Responsive */
 @media (max-width: 1100px) {
   .patients-stats {
     grid-template-columns: repeat(2, 1fr);
-  }
-
-  .patients-bottom-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .clinical-support-card {
-    max-width: 320px;
   }
 }
 
@@ -491,32 +343,12 @@
     gap: 18px;
   }
 
-  .patients-header__actions {
-    width: 100%;
-    flex-direction: column;
-  }
-
-  .patients-header__actions button {
-    width: 100%;
-    justify-content: center;
-  }
-
   .patients-stats {
     grid-template-columns: 1fr;
   }
 
   .patients-table-card {
     padding: 0 18px 20px;
-  }
-
-  .retention-card {
-    padding: 28px 22px;
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .clinical-support-card {
-    max-width: none;
   }
 
   .patients-floating-button {

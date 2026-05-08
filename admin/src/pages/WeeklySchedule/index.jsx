@@ -1,52 +1,185 @@
+import React, { useState } from 'react';
 import {
   LuCalendarDays,
   LuFilter,
   LuChevronDown,
-  LuChartColumn,
-  LuSettings,
-  LuBell,
   LuClock,
   LuCirclePlus,
   LuCircleX,
-  LuCalendarX,
+  LuChevronLeft,
+  LuChevronRight,
   LuUsers,
-  LuPlus,
 } from 'react-icons/lu';
 import './styles.css';
 
 const weekDays = [
-  { day: 'SEG', number: '23' },
-  { day: 'TER', number: '24', active: true },
-  { day: 'QUA', number: '25' },
-  { day: 'QUI', number: '26' },
-  { day: 'SEX', number: '27' },
-  { day: 'SÁB', number: '28', disabled: true },
-  { day: 'DOM', number: '29', disabled: true },
+  { day: 'SEG', number: '23', date: '2023-10-23' },
+  { day: 'TER', number: '24', date: '2023-10-24', active: true },
+  { day: 'QUA', number: '25', date: '2023-10-25' },
+  { day: 'QUI', number: '26', date: '2023-10-26' },
+  { day: 'SEX', number: '27', date: '2023-10-27' },
+  { day: 'SÁB', number: '28', date: '2023-10-28', disabled: true },
+  { day: 'DOM', number: '29', date: '2023-10-29', disabled: true },
 ];
 
+const timeSlots = ['08:00', '09:00', '10:00', '11:00', '14:00', '15:00'];
+
+const appointments = [
+  {
+    id: 1,
+    date: '2023-10-23',
+    time: '08:00',
+    type: 'CONSULTA',
+    patient: 'Beatriz Oliveira',
+    details: 'Cardiologia - Sala 04',
+    status: 'busy',
+  },
+  {
+    id: 2,
+    date: '2023-10-24',
+    time: '08:00',
+    type: 'CONSULTA PRESENCIAL',
+    patient: 'Marcos Silva',
+    details: 'Ortopedia - Sala 02',
+    status: 'busy',
+  },
+  {
+    id: 3,
+    date: '2023-10-24',
+    time: '10:00',
+    type: 'RETORNO',
+    patient: 'Ana Paula',
+    details: 'Cardiologia - Sala 04',
+    status: 'busy',
+  },
+  {
+    id: 4,
+    date: '2023-10-25',
+    time: '09:00',
+    type: 'CANCELADO',
+    patient: 'Atendimento cancelado',
+    details: '',
+    status: 'canceled',
+  },
+  {
+    id: 5,
+    date: '2023-10-26',
+    time: '08:00',
+    type: 'CHECK-UP',
+    patient: 'Carlos Mendes',
+    details: 'Clínica Geral - Sala 01',
+    status: 'busy',
+  },
+  {
+    id: 6,
+    date: '2023-10-27',
+    time: '14:00',
+    type: 'EMERGÊNCIA',
+    patient: 'Juliana Castro',
+    details: 'Pronto atendimento',
+    status: 'emergency',
+  },
+];
+
+const monthDays = Array.from({ length: 35 }, (_, index) => {
+  const dayNumber = index - 0;
+  const isCurrentMonth = dayNumber >= 1 && dayNumber <= 31;
+
+  return {
+    id: index,
+    number: isCurrentMonth ? dayNumber : '',
+    date: isCurrentMonth ? `2023-10-${String(dayNumber).padStart(2, '0')}` : null,
+    muted: !isCurrentMonth,
+    active: dayNumber === 24,
+  };
+});
+
+function getAppointment(date, time) {
+  return appointments.find((item) => item.date === date && item.time === time);
+}
+
+function getAppointmentsByDate(date) {
+  return appointments.filter((item) => item.date === date);
+}
+
+function AppointmentCard({ appointment }) {
+  if (!appointment) {
+    return (
+      <button type="button" className="empty-slot" aria-label="Adicionar horário">
+        <LuCirclePlus size={24} />
+      </button>
+    );
+  }
+
+  if (appointment.status === 'canceled') {
+    return (
+      <div className="schedule-event schedule-event--canceled">
+        <LuCircleX size={18} />
+        <strong>CANCELADO</strong>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={`schedule-event schedule-event--filled ${
+        appointment.status === 'emergency' ? 'schedule-event--emergency' : 'schedule-event--green'
+      }`}
+    >
+      <span>{appointment.type}</span>
+      <strong>{appointment.patient}</strong>
+      <small>{appointment.details}</small>
+    </div>
+  );
+}
+
 export default function WeeklySchedule() {
+  const [view, setView] = useState('week');
+
+  const selectedDay = weekDays.find((item) => item.active);
+  const selectedDayAppointments = getAppointmentsByDate(selectedDay.date);
+
+  const totalAppointments = view === 'day' ? selectedDayAppointments.length : appointments.length;
+  const periodLabel = view === 'month' ? 'Outubro, 2023' : view === 'day' ? '24 de Outubro, 2023' : '23 - 29 de Outubro, 2023';
+
   return (
     <main className="weekly-schedule-page">
       <section className="weekly-schedule-header">
         <div>
-          <h1>Agenda Semanal</h1>
+          <h1>Agenda de Atendimentos</h1>
 
           <div className="weekly-schedule-header__info">
             <span>
               <LuCalendarDays size={14} />
-              23 - 29 de Outubro, 2023
+              {periodLabel}
             </span>
 
-            <p>Visualizando: 124 atendimentos esta semana</p>
+            <p>Visualizando: {totalAppointments} atendimentos</p>
           </div>
         </div>
 
         <div className="schedule-view-toggle">
-          <button type="button">Dia</button>
-          <button type="button" className="schedule-view-toggle__active">
+          <button
+            type="button"
+            className={view === 'day' ? 'schedule-view-toggle__active' : ''}
+            onClick={() => setView('day')}
+          >
+            Dia
+          </button>
+          <button
+            type="button"
+            className={view === 'week' ? 'schedule-view-toggle__active' : ''}
+            onClick={() => setView('week')}
+          >
             Semana
           </button>
-          <button type="button">Mês</button>
+          <button
+            type="button"
+            className={view === 'month' ? 'schedule-view-toggle__active' : ''}
+            onClick={() => setView('month')}
+          >
+            Mês
+          </button>
         </div>
       </section>
 
@@ -64,10 +197,7 @@ export default function WeeklySchedule() {
                 <option value="">Todas as Especialidades</option>
                 <option value="cardiologia">Cardiologia</option>
                 <option value="ortopedia">Ortopedia</option>
-                <option value="dermatologia">Dermatologia</option>
-                <option value="pediatria">Pediatria</option>
               </select>
-
               <LuChevronDown size={16} />
             </div>
           </label>
@@ -89,225 +219,150 @@ export default function WeeklySchedule() {
 
           <div className="schedule-legend">
             <h3>LEGENDA</h3>
-
             <div className="schedule-legend__grid">
-              <span>
-                <small className="legend-color legend-color--busy" />
-                Ocupado
-              </span>
-
-              <span>
-                <small className="legend-color legend-color--free" />
-                Livre
-              </span>
-
-              <span>
-                <small className="legend-color legend-color--canceled" />
-                Cancelado
-              </span>
-
-              <span>
-                <small className="legend-color legend-color--emergency" />
-                Emergência
-              </span>
+              <span><small className="legend-color legend-color--busy" /> Ocupado</span>
+              <span><small className="legend-color legend-color--free" /> Livre</span>
+              <span><small className="legend-color legend-color--canceled" /> Cancelado</span>
+              <span><small className="legend-color legend-color--emergency" /> Emergência</span>
             </div>
           </div>
         </aside>
-
-        {/* <div className="schedule-indicators">
-          <div className="schedule-indicator-card schedule-indicator-card--occupancy">
-            <LuChartColumn size={22} />
-            <strong>84%</strong>
-            <span>OCUPAÇÃO MÉDIA</span>
-          </div>
-
-          <div className="schedule-indicator-card schedule-indicator-card--today">
-            <LuSettings size={22} />
-            <strong>42</strong>
-            <span>ATENDIDOS HOJE</span>
-          </div>
-
-          <div className="schedule-indicator-card schedule-indicator-card--canceled">
-            <LuBell size={22} />
-            <strong>08</strong>
-            <span>CANCELAMENTOS</span>
-          </div>
-        </div> */}
       </section>
 
       <section className="weekly-calendar-card">
-        <div className="weekly-calendar-grid weekly-calendar-grid--header">
-          <div className="calendar-time-header">
-            <LuClock size={24} />
-          </div>
-
-          {weekDays.map((item) => (
-            <div
-              key={item.day}
-              className={`calendar-day-header ${item.active ? 'calendar-day-header--active' : ''} ${
-                item.disabled ? 'calendar-day-header--disabled' : ''
-              }`}
-            >
-              <span>{item.day}</span>
-              <strong>{item.number}</strong>
-            </div>
-          ))}
-        </div>
-
-        <div className="weekly-calendar-grid calendar-row">
-          <div className="calendar-time">08:00</div>
-
-          <div className="calendar-cell">
-            <div className="schedule-event schedule-event--green schedule-event--filled">
-              <span>CONSULTA</span>
-              <strong>Beatriz Oli...</strong>
-              <small>Cardiologia</small>
-            </div>
-          </div>
-
-          <div className="calendar-cell">
-            <button type="button" className="empty-slot">
-              <LuCirclePlus size={24} />
-            </button>
-          </div>
-
-          <div className="calendar-cell">
-            <div className="schedule-event schedule-event--canceled">
-              <LuCircleX size={18} />
-              <strong>CANCELADO</strong>
-            </div>
-          </div>
-
-          <div className="calendar-cell">
-            <div className="schedule-event schedule-event--green schedule-event--filled">
-              <span>CHECK-UP</span>
-              <strong>Marcos Silva</strong>
-            </div>
-          </div>
-
-          <div className="calendar-cell">
-            <button type="button" className="empty-slot">
-              <LuCirclePlus size={24} />
-            </button>
-          </div>
-
-          <div className="calendar-cell calendar-cell--disabled" />
-          <div className="calendar-cell calendar-cell--disabled" />
-        </div>
-
-        {/* https://chatgpt.com/g/g-p-69df8a211bf081919c637d6121d3f2fd-vivaunimed/c/69f358e2-f154-83e9-a1c8-04255eb5995d */}
-        <div className="weekly-calendar-grid calendar-row">
-          <div className="calendar-time">09:00</div>
-
-          <div className="calendar-cell">
-            <button type="button" className="empty-slot">
-              <LuCirclePlus size={24} />
-            </button>
-          </div>
-
-          <div className="calendar-cell">
-            <div className="schedule-event schedule-event--green schedule-event--filled">
-              <span>URGÊNCIA</span>
-              <strong>Ana Clara ...</strong>
-            </div>
-          </div>
-
-          <div className="calendar-cell">
-            <div className="schedule-event schedule-event--green schedule-event--filled">
-              <span>RETORNO</span>
-              <strong>Pedro Gom...</strong>
-            </div>
-          </div>
-
-          <div className="calendar-cell">
-            <button type="button" className="empty-slot empty-slot--simple">
-              <LuCirclePlus size={24} />
-            </button>
-          </div>
-
-          <div className="calendar-cell">
-            <div className="schedule-event schedule-event--unavailable">
-              <LuCalendarX size={17} />
-              <strong>INDISPONÍVEL</strong>
-            </div>
-          </div>
-
-          <div className="calendar-cell calendar-cell--disabled" />
-          <div className="calendar-cell calendar-cell--disabled" />
-        </div>
-
-        <div className="weekly-calendar-grid calendar-row">
-          <div className="calendar-time">10:00</div>
-
-          {/* <div className="calendar-cell calendar-cell--span-3">
-            <div className="team-meeting-event">
-              <div className="team-meeting-event__icon">
-                <LuUsers size={24} />
-              </div>
+        {view === 'day' && (
+          <div className="view-container-day">
+            <div className="day-view-header">
+              <button type="button" className="nav-button" aria-label="Dia anterior">
+                <LuChevronLeft size={20} />
+              </button>
 
               <div>
-                <strong>Reunião de Equipe Clínica</strong>
-                <span>Auditório Central - Ala Norte</span>
+                <span>TERÇA-FEIRA</span>
+                <strong>24 de Outubro</strong>
               </div>
 
-              <div className="meeting-avatars">
-                <img
-                  src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=60&h=60&fit=crop&crop=face"
-                  alt="Participante"
-                />
-                <img
-                  src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=60&h=60&fit=crop&crop=face"
-                  alt="Participante"
-                />
-                <small>+4</small>
+              <button type="button" className="nav-button" aria-label="Próximo dia">
+                <LuChevronRight size={20} />
+              </button>
+            </div>
+
+            <div className="weekly-calendar-grid weekly-calendar-grid--day weekly-calendar-grid--header">
+              <div className="calendar-time-header">
+                <LuClock size={24} />
+              </div>
+              <div className="calendar-day-header calendar-day-header--active">
+                <span>{selectedDay.day}</span>
+                <strong>{selectedDay.number}</strong>
               </div>
             </div>
-          </div> */}
 
-          <div className="calendar-cell">
-            <button type="button" className="empty-slot empty-slot--simple">
-              <LuCirclePlus size={24} />
-            </button>
+            {timeSlots.map((time) => (
+              <div key={time} className="weekly-calendar-grid weekly-calendar-grid--day calendar-row">
+                <div className="calendar-time">{time}</div>
+                <div className="calendar-cell">
+                  <AppointmentCard appointment={getAppointment(selectedDay.date, time)} />
+                </div>
+              </div>
+            ))}
           </div>
+        )}
 
-          <div className="calendar-cell">
-            <button type="button" className="empty-slot empty-slot--simple">
-              <LuCirclePlus size={24} />
-            </button>
-          </div>
-          
-          <div className="calendar-cell">
-            <button type="button" className="empty-slot empty-slot--simple">
-              <LuCirclePlus size={24} />
-            </button>
-          </div>
+        {view === 'week' && (
+          <div className="view-container-week">
+            <div className="weekly-calendar-grid weekly-calendar-grid--header">
+              <div className="calendar-time-header">
+                <LuClock size={24} />
+              </div>
 
-          <div className="calendar-cell">
-            <div className="schedule-event schedule-event--green schedule-event--filled">
-              <span>PRIMEIRA VEZ</span>
-              <strong>Luiza Helena</strong>
+              {weekDays.map((item) => (
+                <div
+                  key={item.date}
+                  className={`calendar-day-header ${item.active ? 'calendar-day-header--active' : ''} ${
+                    item.disabled ? 'calendar-day-header--disabled' : ''
+                  }`}
+                >
+                  <span>{item.day}</span>
+                  <strong>{item.number}</strong>
+                </div>
+              ))}
+            </div>
+
+            {timeSlots.map((time) => (
+              <div key={time} className="weekly-calendar-grid calendar-row">
+                <div className="calendar-time">{time}</div>
+
+                {weekDays.map((day) => (
+                  <div
+                    key={`${day.date}-${time}`}
+                    className={`calendar-cell ${day.disabled ? 'calendar-cell--disabled' : ''}`}
+                  >
+                    {!day.disabled && <AppointmentCard appointment={getAppointment(day.date, time)} />}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {view === 'month' && (
+          <div className="view-container-month">
+            <div className="month-view-header">
+              <button type="button" className="nav-button" aria-label="Mês anterior">
+                <LuChevronLeft size={20} />
+              </button>
+
+              <strong>Outubro 2023</strong>
+
+              <button type="button" className="nav-button" aria-label="Próximo mês">
+                <LuChevronRight size={20} />
+              </button>
+            </div>
+
+            <div className="month-grid-header">
+              {['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'].map((day) => (
+                <div key={day}>{day}</div>
+              ))}
+            </div>
+
+            <div className="month-grid-body">
+              {monthDays.map((day) => {
+                const dayAppointments = day.date ? getAppointmentsByDate(day.date) : [];
+
+                return (
+                  <button
+                    type="button"
+                    key={day.id}
+                    className={`month-cell ${day.active ? 'month-cell--active' : ''} ${day.muted ? 'month-cell--muted' : ''}`}
+                    disabled={day.muted}
+                  >
+                    <span className="month-day-number">{day.number}</span>
+
+                    <div className="month-events-list">
+                      {dayAppointments.slice(0, 2).map((appointment) => (
+                        <span
+                          key={appointment.id}
+                          className={`month-event-pill month-event-pill--${appointment.status}`}
+                        >
+                          {appointment.time} {appointment.patient}
+                        </span>
+                      ))}
+
+                      {dayAppointments.length > 2 && (
+                        <small>+{dayAppointments.length - 2} atendimento(s)</small>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
-
-          <div className="calendar-cell calendar-cell--disabled" />
-          <div className="calendar-cell calendar-cell--disabled" />
-        </div>
-
-        <div className="weekly-calendar-grid calendar-row calendar-row--interval">
-          <div className="calendar-time">11:00</div>
-          <div className="calendar-interval">HORÁRIO DE INTERVALO</div>
-        </div>
+        )}
       </section>
 
-      {/* <div className="schedule-sync-toast">
-        <span />
-        <strong>Sincronizado agora: Agenda Dr. Ricardo Silva</strong>
-        <button type="button">Desfazer</button>
-      </div> */}
-
-      {/* <button type="button" className="schedule-floating-button">
-        <LuPlus size={28} />
-      </button> */}
+      <button type="button" className="schedule-floating-button" aria-label="Adicionar atendimento">
+        <LuCirclePlus size={28} />
+      </button>
     </main>
   );
 }
