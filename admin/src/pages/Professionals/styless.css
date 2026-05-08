@@ -1,0 +1,309 @@
+/* Layout da Página e Container */
+.professionals-page {
+  width: 100%;
+  min-height: 100vh;
+  padding: 32px 36px;
+  background-color: #faf8f7;
+  color: #1f2933;
+}
+
+/* Cabeçalho da Listagem */
+.professionals-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 32px;
+}
+
+.professionals-header h1 {
+  margin: 0;
+  font-size: 32px;
+  line-height: 38px;
+  font-weight: 800;
+  color: #202124;
+}
+
+.professionals-header p {
+  margin: 6px 0 0;
+  font-size: 16px;
+  line-height: 22px;
+  color: #5f6368;
+}
+
+.professionals-header a {
+  text-decoration: none;
+}
+
+.professionals-header__button {
+  height: 45px;
+  padding: 0 24px;
+  border: none;
+  border-radius: 10px;
+  background-color: #007f4f;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 8px 18px rgba(0, 127, 79, 0.28);
+  cursor: pointer;
+}
+
+.professionals-header__button svg {
+  stroke: #ffffff;
+}
+
+/* Card da Tabela */
+.professionals-content {
+  margin-bottom: 36px;
+}
+
+.professionals-table-card {
+  width: 100%;
+  min-width: 0;
+  height: 530px;
+  padding: 30px 30px 24px;
+  border-radius: 22px;
+  background-color: #ffffff;
+  box-shadow: 0 10px 30px rgba(31, 41, 51, 0.04);
+  overflow: hidden;
+}
+
+.professionals-table-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 26px;
+}
+
+.professionals-table-card__header h2 {
+  margin: 0;
+  font-size: 20px;
+  line-height: 24px;
+  font-weight: 800;
+  color: #202124;
+}
+
+.professionals-table-card__actions {
+  display: flex;
+  gap: 10px;
+}
+
+.professionals-table-card__actions button {
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 12px;
+  background-color: #f5f5f5;
+  color: #5f6368;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* Estrutura da Tabela */
+.professionals-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.professionals-table {
+  width: 100%;
+  min-width: 920px;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.professionals-table thead {
+  height: 48px;
+  background-color: #fafafa;
+}
+
+.professionals-table th {
+  padding: 0;
+  font-size: 10px;
+  line-height: 14px;
+  font-weight: 900;
+  letter-spacing: 0.8px;
+  color: #6b7280;
+  text-align: left;
+}
+
+/* Largura das Colunas */
+.professionals-table th:nth-child(1),
+.professionals-table td:nth-child(1) { width: 32%; padding-left: 2px; }
+.professionals-table th:nth-child(2),
+.professionals-table td:nth-child(2) { width: 20%; }
+.professionals-table th:nth-child(3),
+.professionals-table td:nth-child(3) { width: 19%; }
+.professionals-table th:nth-child(4),
+.professionals-table td:nth-child(4) { width: 12%; }
+.professionals-table th:nth-child(5),
+.professionals-table td:nth-child(5) { width: 17%; }
+
+.professionals-table tbody tr {
+  height: 76px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.professionals-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.professionals-table td {
+  font-size: 13px;
+  line-height: 18px;
+  color: #1f2933;
+  vertical-align: middle;
+}
+
+/* Células e Badges */
+.professional-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.professional-info img {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.professional-info strong {
+  display: block;
+  margin-bottom: 3px;
+  font-size: 13px;
+  line-height: 16px;
+  font-weight: 800;
+  color: #202124;
+}
+
+.professional-info span {
+  display: block;
+  font-size: 11px;
+  line-height: 14px;
+  color: #6b7280;
+}
+
+.crm-badge {
+  height: 23px;
+  padding: 5px 10px;
+  border-radius: 5px;
+  background-color: #eeeeee;
+  font-size: 11px;
+  font-weight: 700;
+  color: #5f6368;
+  white-space: nowrap;
+}
+
+.status-badge {
+  height: 24px;
+  min-width: 48px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.status-badge--active {
+  background-color: #bdf7d6;
+  color: #008256;
+}
+
+.status-badge--inactive {
+  background-color: #eeeeee;
+  color: #5f6368;
+}
+
+/* Ações da Tabela */
+.professional-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.professional-actions button {
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.professional-actions__edit {
+  border: 1px solid #d7efe4;
+  background-color: #ffffff;
+  color: #008256;
+}
+
+.professional-actions__edit:hover { background-color: #eefaf5; }
+
+.professional-actions__disable {
+  border: 1px solid #f1d7d7;
+  background-color: #ffffff;
+  color: #c24141;
+}
+
+.professional-actions__disable:hover { background-color: #fff1f1; }
+
+.professional-actions__enable {
+  border: 1px solid #d7efe4;
+  background-color: #ffffff;
+  color: #008256;
+}
+
+.professional-actions__enable:hover { background-color: #eefaf5; }
+
+/* Rodapé e Paginação */
+.professionals-table-card__footer {
+  margin-top: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.professionals-table-card__footer span {
+  font-size: 12px;
+  color: #5f6368;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pagination button {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #e5e7eb;
+  border-radius: 9px;
+  background-color: #ffffff;
+  color: #5f6368;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pagination .pagination__active {
+  border-color: #008256;
+  background-color: #008256;
+  color: #ffffff;
+}
+
+/* Responsividade (Focada na Listagem) */
+@media (max-width: 720px) {
+  .professionals-page { padding: 24px 18px; }
+  .professionals-header { flex-direction: column; gap: 18px; }
+  .professionals-header__button { width: 100%; justify-content: center; }
+  .professionals-table-card { height: auto; padding: 24px 18px; }
+  .professionals-table { min-width: 920px; }
+}

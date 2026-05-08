@@ -6,8 +6,11 @@ import {
   LuBrain,
   LuBaby,
   LuCamera,
+  LuSun,
+  LuClock,
 } from 'react-icons/lu';
 import './styles.css';
+import { NavLink } from 'react-router-dom';
 
 const professionals = [
   {
@@ -63,10 +66,12 @@ export default function Professionals() {
           </p>
         </div>
 
-        <button type="button" className="professionals-header__button">
-          <LuUserPlus size={18} />
-          Cadastrar Profissional
-        </button>
+        <NavLink to="/professionals/new">
+          <button type="button" className="professionals-header__button">
+            <LuUserPlus size={18} />
+            Cadastrar Profissional
+          </button>
+        </NavLink>
       </section>
 
       <section className="professionals-content">
@@ -175,122 +180,6 @@ export default function Professionals() {
             </div>
           </div>
         </div>
-      </section>
-
-      <section className="professional-form-card">
-        <div className="professional-form-card__title">
-          <div className="professional-form-card__icon">
-            <LuUserPlus size={24} />
-          </div>
-
-          <div>
-            <h2>Cadastro de Profissional</h2>
-            <p>
-              Insira os dados cadastrais e profissionais do novo integrante.
-            </p>
-          </div>
-        </div>
-
-        <form className="professional-form">
-          <div className="professional-form__column">
-            <h3>DADOS PESSOAIS</h3>
-
-            <label>
-              Nome Completo
-              <input type="text" placeholder="Ex: Dr. João da Silva" />
-            </label>
-
-            <label>
-              E-mail Corporativo
-              <input type="email" placeholder="nome@unimed.com" />
-            </label>
-
-            <label>
-              Telefone / WhatsApp
-              <input type="text" placeholder="(53) 00000-0000" />
-            </label>
-          </div>
-
-          <div className="professional-form__column">
-            <h3>ATUAÇÃO PROFISSIONAL</h3>
-
-            <label>
-              Especialidade
-              <select defaultValue="">
-                <option value="" disabled>
-                  Selecione uma especialidade
-                </option>
-                <option value="cardiologia">Cardiologia</option>
-                <option value="neurologia">Neurologia</option>
-                <option value="pediatria">Pediatria</option>
-                <option value="ginecologia">Ginecologia</option>
-              </select>
-            </label>
-
-            <div className="professional-form__row">
-              <label>
-                Nº Registro (CRM)
-                <input type="text" placeholder="00000" />
-              </label>
-
-              <label>
-                UF
-                <select defaultValue="RS">
-                  <option value="RS">RS</option>
-                  <option value="SC">SC</option>
-                  <option value="PR">PR</option>
-                </select>
-              </label>
-            </div>
-
-            <label>
-              Carga Horária Semanal
-              <input type="number" placeholder="40" />
-            </label>
-          </div>
-
-          <div className="professional-form__column">
-            <h3>PERFIL E DOCUMENTOS</h3>
-
-            <div className="upload-card">
-              <div className="upload-card__icon">
-                <LuCamera size={24} />
-              </div>
-
-              <div>
-                <strong>Foto de Perfil</strong>
-                <span>PNG ou JPG até 2MB.</span>
-                <span>Utilizada na agenda.</span>
-              </div>
-            </div>
-
-            <div className="status-field">
-              <span>Status Inicial</span>
-
-              <div className="status-field__options">
-                <label>
-                  <input type="radio" name="status" defaultChecked />
-                  Ativo
-                </label>
-
-                <label>
-                  <input type="radio" name="status" />
-                  Inativo
-                </label>
-              </div>
-            </div>
-
-            <div className="form-buttons">
-              <button type="button" className="form-buttons__cancel">
-                Cancelar
-              </button>
-
-              <button type="submit" className="form-buttons__save">
-                Salvar Cadastro
-              </button>
-            </div>
-          </div>
-        </form>
       </section>
     </main>
   );

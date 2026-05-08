@@ -239,7 +239,7 @@ export default function WeeklySchedule() {
         <div className="weekly-calendar-grid calendar-row">
           <div className="calendar-time">10:00</div>
 
-          <div className="calendar-cell calendar-cell--span-3">
+          {/* <div className="calendar-cell calendar-cell--span-3">
             <div className="team-meeting-event">
               <div className="team-meeting-event__icon">
                 <LuUsers size={24} />
@@ -262,8 +262,20 @@ export default function WeeklySchedule() {
                 <small>+4</small>
               </div>
             </div>
+          </div> */}
+
+          <div className="calendar-cell">
+            <button type="button" className="empty-slot empty-slot--simple">
+              <LuCirclePlus size={24} />
+            </button>
           </div>
 
+          <div className="calendar-cell">
+            <button type="button" className="empty-slot empty-slot--simple">
+              <LuCirclePlus size={24} />
+            </button>
+          </div>
+          
           <div className="calendar-cell">
             <button type="button" className="empty-slot empty-slot--simple">
               <LuCirclePlus size={24} />
@@ -293,9 +305,9 @@ export default function WeeklySchedule() {
         <button type="button">Desfazer</button>
       </div> */}
 
-      <button type="button" className="schedule-floating-button">
+      {/* <button type="button" className="schedule-floating-button">
         <LuPlus size={28} />
-      </button>
+      </button> */}
     </main>
   );
 }

@@ -28,6 +28,10 @@
   color: #5f6368;
 }
 
+.professionals-header a {
+  text-decoration: none;
+}
+
 .professionals-header__button {
   height: 52px;
   padding: 0 24px;
@@ -50,104 +54,6 @@
 
 .professionals-content {
   margin-bottom: 36px;
-}
-
-.professionals-sidebar {
-  display: flex;
-  flex-direction: column;
-  gap: 22px;
-}
-
-.stats-card {
-  height: 178px;
-  padding: 28px 28px;
-  border-radius: 20px;
-  background: radial-gradient(circle at right bottom, #d8f8e6 0, #ffffff 48%);
-  box-shadow: 0 10px 30px rgba(31, 41, 51, 0.04);
-}
-
-.stats-card__label {
-  display: block;
-  margin-bottom: 6px;
-  font-size: 11px;
-  line-height: 14px;
-  font-weight: 800;
-  letter-spacing: 1.4px;
-  color: #61b79a;
-}
-
-.stats-card strong {
-  display: block;
-  font-size: 46px;
-  line-height: 52px;
-  font-weight: 900;
-  color: #008256;
-}
-
-.stats-card p {
-  margin: 36px 0 0;
-  font-size: 12px;
-  line-height: 16px;
-  color: #23564a;
-}
-
-.specialties-card {
-  padding: 24px 22px;
-  border-radius: 20px;
-  background-color: #ffffff;
-  box-shadow: 0 10px 30px rgba(31, 41, 51, 0.04);
-}
-
-.specialties-card h2 {
-  margin: 0 0 20px;
-  font-size: 16px;
-  line-height: 20px;
-  font-weight: 800;
-  color: #202124;
-}
-
-.specialty-item {
-  height: 54px;
-  padding: 0 16px;
-  margin-bottom: 14px;
-  border-radius: 10px;
-  background-color: #fbfbfb;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  box-shadow: 0 6px 14px rgba(31, 41, 51, 0.04);
-}
-
-.specialty-item:last-child {
-  margin-bottom: 0;
-}
-
-.specialty-item__icon {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  background-color: #def7ec;
-  color: #008256;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.specialty-item__icon svg {
-  stroke: #008256;
-}
-
-.specialty-item span {
-  flex: 1;
-  font-size: 13px;
-  font-weight: 700;
-  color: #1f2933;
-}
-
-.specialty-item strong {
-  font-size: 12px;
-  font-weight: 800;
-  color: #1f2933;
 }
 
 .professionals-table-card {
@@ -589,6 +495,7 @@
   gap: 12px;
 }
 
+.form-buttons-container button,
 .form-buttons button {
   height: 46px;
   padding: 0 24px;
@@ -596,6 +503,10 @@
   font-size: 13px;
   font-weight: 800;
   cursor: pointer;
+  display: flex; /* Garante alinhamento do texto */
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s; /* Deixa o hover mais suave */
 }
 
 .form-buttons__cancel {
@@ -611,14 +522,119 @@
   box-shadow: 0 8px 18px rgba(0, 127, 79, 0.28);
 }
 
+/* Estilos para o Horário de Atendimento */
+.professional-form__schedule {
+  grid-column: 1 / -1; /* Ocupa toda a largura do formulário */
+  margin-top: 20px;
+  padding-top: 30px;
+  border-top: 1px solid #f0eeee;
+}
+
+.schedule-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.schedule-header h3 {
+  margin: 0 !important;
+}
+
+.weekly-badge {
+  background-color: #e2e8f0;
+  color: #475569;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 999px;
+  letter-spacing: 0.5px;
+}
+
+.days-selector {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.day-btn {
+  width: 76px;
+  height: 48px;
+  border-radius: 10px;
+  border: none;
+  background-color: #f5f5f5;
+  color: #5f6368;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.day-btn.active {
+  background-color: #008256;
+  color: #ffffff;
+}
+
+.time-periods {
+  display: flex;
+  gap: 60px;
+  margin-bottom: 24px;
+}
+
+.time-period__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  font-weight: 800;
+  color: #202124;
+}
+
+.time-inputs {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.time-inputs input {
+  width: 140px;
+  height: 48px;
+  background-color: #f0eeee;
+  border-radius: 10px;
+  border: none;
+  text-align: center;
+  font-weight: 600;
+  color: #202124;
+}
+
+.time-inputs span {
+  font-size: 13px;
+  color: #5f6368;
+}
+
+.schedule-notice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 20px;
+  background-color: #ffe8d9;
+  border-radius: 12px;
+  color: #854d0e;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.form-buttons-container {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+}
+
 @media (max-width: 1100px) {
   .professionals-content {
     grid-template-columns: 1fr;
-  }
-
-  .professionals-sidebar {
-    display: grid;
-    grid-template-columns: 280px 1fr;
   }
 
   .professional-form {
@@ -639,10 +655,6 @@
   .professionals-header__button {
     width: 100%;
     justify-content: center;
-  }
-
-  .professionals-sidebar {
-    grid-template-columns: 1fr;
   }
 
   .professionals-table-card {

@@ -8,6 +8,7 @@ import Professionals from '../pages/Professionals';
 import Vacancies from '../pages/Vacancies';
 import Patients from '../pages/Patients';
 import WeeklySchedule from '../pages/WeeklySchedule';
+import CreateProfessional from '../pages/CreateProfessional';
 
 export const RoutesApp = () => {
   return (
@@ -22,6 +23,7 @@ export const RoutesApp = () => {
         <Route element={<PrivateLayout />}>
           <Route path="/" element={<AdminDashboard/>} />
           <Route path="/professionals" element={<Professionals />} />
+          <Route path="/professionals/new" element={<CreateProfessional />} />
           <Route path="/weeklySchedule" element={<WeeklySchedule/>} />
           <Route path="/vacancies" element={<Vacancies/>} />
           <Route path="/patients" element={<Patients/>} />
