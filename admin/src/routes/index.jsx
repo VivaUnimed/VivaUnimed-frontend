@@ -9,6 +9,7 @@ import Vacancies from '../pages/Vacancies';
 import Patients from '../pages/Patients';
 import WeeklySchedule from '../pages/WeeklySchedule';
 import CreateProfessional from '../pages/CreateProfessional';
+import NoShowRegistration from '../pages/NoShowRegistration';
 
 export const RoutesApp = () => {
   return (
@@ -26,6 +27,7 @@ export const RoutesApp = () => {
           <Route path="/professionals/new" element={<CreateProfessional />} />
           <Route path="/weeklySchedule" element={<WeeklySchedule/>} />
           <Route path="/vacancies" element={<Vacancies/>} />
+          <Route path="/NoShowRegistration" element={<NoShowRegistration/>} />
           <Route path="/patients" element={<Patients/>} />
           <Route path="/settings" element={<div/>} />
         </Route>

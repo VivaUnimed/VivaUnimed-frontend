@@ -7,6 +7,7 @@ import {
   LuUsers,
   LuSettings,
   LuLogOut,
+  LuCalendarPlus,
 } from 'react-icons/lu';
 import { FaUserDoctor } from 'react-icons/fa6';
 import './styles.css';
@@ -38,13 +39,18 @@ export default function Sidebar() {
           </NavLink>
 
           <NavLink to="/vacancies" className="sidebar__link">
-            <LuCalendarX2 className="sidebar__icon" />
+            <LuCalendarPlus className="sidebar__icon" />
             <span>Vagas</span>
           </NavLink>
 
           <NavLink to="/patients" className="sidebar__link">
             <LuUsers className="sidebar__icon" />
             <span>Pacientes</span>
+          </NavLink>
+
+          <NavLink to="/NoShowRegistration" className="sidebar__link">
+            <LuCalendarX2 className="sidebar__icon" />
+            <span>Cadastro No-Show</span>
           </NavLink>
         </nav>
       </div>
