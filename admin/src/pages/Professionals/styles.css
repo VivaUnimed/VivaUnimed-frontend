@@ -33,13 +33,13 @@
 }
 
 .professionals-header__button {
-  height: 52px;
+  height: 45px;
   padding: 0 24px;
   border: none;
   border-radius: 10px;
   background-color: #007f4f;
   color: #ffffff;
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 700;
   display: flex;
   align-items: center;

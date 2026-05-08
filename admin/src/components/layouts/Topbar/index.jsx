@@ -21,9 +21,9 @@ export default function Topbar() {
           <LuCircleHelp className='icon-topbar'/>
         </button>
 
-        <button type="button" className="topbar__action-btn">
+        {/* <button type="button" className="topbar__action-btn">
           + Novo Agendamento
-        </button>
+        </button> */}
 
         <button type="button" className="topbar__profile" aria-label="Perfil">
           <img
