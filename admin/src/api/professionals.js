@@ -1,10 +1,5 @@
 import { toast } from 'react-toastify';
 import { professionalTypes } from '../context/professionalContext/professionalTypes';
-import {
-  mergeProfessionalWithAiInsight,
-  mergeProfessionalsWithAiInsights,
-  removeProfessionalAiInsight,
-} from '../context/professionalContext/professionalAiInsightStorage';
 
 import { getRequest, postRequest, putRequest, deleteRequest } from './api';
 
@@ -13,11 +8,14 @@ export const getAllProfessionals = async (dispatch) => {
 
   try {
     const data = await getRequest('/professionals/');
+    const professionals = data?.professionals ?? [];
 
     dispatch({
       type: professionalTypes.GET_ALL_PROFESSIONALS_SUCCESS,
-      payload: { professionals: data.professionals },
+      payload: { professionals },
     });
+
+    return professionals;
   } catch (error) {
     dispatch({
       type: professionalTypes.GET_ALL_PROFESSIONALS_FAILURE,
@@ -25,6 +23,7 @@ export const getAllProfessionals = async (dispatch) => {
     });
 
     toast.error('Erro ao carregar profissionais!');
+    throw error;
   }
 };
 
@@ -45,16 +44,21 @@ export const createProfessional = async (newProfessional, dispatch) => {
         },
       },
     });
+    const professional = data?.professional ?? data;
 
     dispatch({
       type: professionalTypes.CREATE_PROFESSIONAL_SUCCESS,
-      payload: { professional: data },
+      payload: { professional },
     });
+
+    return professional;
   } catch (error) {
     dispatch({
       type: professionalTypes.CREATE_PROFESSIONAL_FAILURE,
       payload: { error: error.message },
     });
+
+    throw error;
   }
 };
 
@@ -75,16 +79,21 @@ export const updateProfessional = async (updatedProfessional, id, dispatch) => {
         },
       },
     });
+    const professional = data?.professional ?? data;
 
     dispatch({
       type: professionalTypes.UPDATE_PROFESSIONAL_SUCCESS,
-      payload: { professional: data },
+      payload: { professional, id },
     });
+
+    return professional;
   } catch (error) {
     dispatch({
       type: professionalTypes.UPDATE_PROFESSIONAL_FAILURE,
       payload: { error: error.message },
     });
+
+    throw error;
   }
 };
 
@@ -106,13 +115,15 @@ export const deleteProfessional = async (id, dispatch) => {
       },
     });
 
-    removeProfessionalAiInsight(id);
-
     dispatch({ type: professionalTypes.DELETE_PROFESSIONAL_SUCCESS, payload: { id } });
+
+    return id;
   } catch (error) {
     dispatch({
       type: professionalTypes.DELETE_PROFESSIONAL_FAILURE,
       payload: { error: error.message },
     });
+
+    throw error;
   }
 };
