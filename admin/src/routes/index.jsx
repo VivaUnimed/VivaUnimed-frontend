@@ -5,6 +5,7 @@ import PrivateRoutes from '../components/PrivateRoutes';
 import PrivateLayout from '../components/layouts/PrivateLayout';
 import AdminDashboard from '../pages/AdminDashboard';
 import Professionals from '../pages/Professionals';
+import Specialties from '../pages/Specialties';
 import Vacancies from '../pages/Vacancies';
 import Patients from '../pages/Patients';
 import WeeklySchedule from '../pages/WeeklySchedule';
@@ -25,6 +26,7 @@ export const RoutesApp = () => {
           <Route path="/" element={<AdminDashboard/>} />
           <Route path="/professionals" element={<Professionals />} />
           <Route path="/professionals/new" element={<CreateProfessional />} />
+          <Route path="/specialties" element={<Specialties />} />
           <Route path="/weeklySchedule" element={<WeeklySchedule/>} />
           <Route path="/vacancies" element={<Vacancies/>} />
           <Route path="/vacancies/new" element={<NoShowRegistration/>} />
