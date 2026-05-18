@@ -57,9 +57,8 @@ export const isPhoneValid = (value = '') => {
   return digits.length === 10 || digits.length === 11;
 };
 
-export const splitPatientInterests = (value = '') =>
-  value
-    .split(',')
+export const splitPatientInterests = (value = []) =>
+  (Array.isArray(value) ? value : value.split(','))
     .map((interest) => interest.trim())
     .filter(Boolean);
 
@@ -88,6 +87,16 @@ export const createPatientAvatar = (name = '') => {
 };
 
 export const patientStatusOptions = ['Ativo', 'Em fila', 'Inativo'];
+
+const basePatientSpecialtyOptions = [
+  'Cardiologia',
+  'Dermatologia',
+  'Ortopedia',
+  'Pediatria',
+  'Ginecologia',
+  'Clínica Médica',
+  'Nutrologia',
+];
 
 export const defaultPatients = [
   {
@@ -172,18 +181,43 @@ export const defaultPatients = [
   },
 ];
 
-export const buildPatientFromForm = (formValues, existingPatients = []) => {
+export const getPatientSpecialtyOptions = (
+  existingPatients = [],
+  selectedInterests = [],
+) => {
+  const specialtyOptions = new Set(basePatientSpecialtyOptions);
+
+  existingPatients.forEach((patient) => {
+    splitPatientInterests(patient?.interests).forEach((interest) => {
+      specialtyOptions.add(interest);
+    });
+  });
+
+  splitPatientInterests(selectedInterests).forEach((interest) => {
+    specialtyOptions.add(interest);
+  });
+
+  return [...specialtyOptions].sort((firstValue, secondValue) =>
+    firstValue.localeCompare(secondValue, 'pt-BR'),
+  );
+};
+
+export const getPatientFormInitialValues = (patient = null) => ({
+  name: patient?.name ?? '',
+  cpf: patient?.cpf ?? '',
+  phone: patient?.phone ?? '',
+  email: patient?.email ?? '',
+  interests: splitPatientInterests(patient?.interests),
+  status: patient?.status ?? 'Em fila',
+});
+
+const buildPatientFieldsFromForm = (formValues) => {
   const formattedCpf = formatCpf(formValues.cpf);
   const formattedPhone = formatPhone(formValues.phone);
   const name = formValues.name.trim();
   const interests = splitPatientInterests(formValues.interests);
-  const nextId = existingPatients.reduce(
-    (highestId, patient) => Math.max(highestId, Number(patient.id) || 0),
-    0,
-  ) + 1;
 
   return {
-    id: nextId,
     name,
     cpf: formattedCpf,
     phone: formattedPhone,
@@ -191,11 +225,40 @@ export const buildPatientFromForm = (formValues, existingPatients = []) => {
     phoneValid: isPhoneValid(formValues.phone),
     interests,
     status: formValues.status,
+  };
+};
+
+export const buildPatientFromForm = (formValues, existingPatients = []) => {
+  const nextId = existingPatients.reduce(
+    (highestId, patient) => Math.max(highestId, Number(patient.id) || 0),
+    0,
+  ) + 1;
+  const patientFields = buildPatientFieldsFromForm(formValues);
+
+  return {
+    id: nextId,
+    ...patientFields,
     lastNotificationDate: 'Sem envio',
     lastNotificationStatus: 'Sem envio',
     lastConfirmationDate: '',
     lastConfirmationSpecialty: '',
-    avatar: createPatientAvatar(name),
+    avatar: createPatientAvatar(patientFields.name),
     createdAt: new Date().toISOString(),
+  };
+};
+
+export const buildUpdatedPatientFromForm = (formValues, currentPatient) => {
+  const patientFields = buildPatientFieldsFromForm(formValues);
+  const shouldRefreshAvatar =
+    !currentPatient.avatar || currentPatient.avatar.startsWith('data:image/svg+xml');
+  const phoneDidChange = currentPatient.phone !== patientFields.phone;
+
+  return {
+    ...currentPatient,
+    ...patientFields,
+    phoneValid: phoneDidChange ? patientFields.phoneValid : currentPatient.phoneValid,
+    avatar: shouldRefreshAvatar
+      ? createPatientAvatar(patientFields.name)
+      : currentPatient.avatar,
   };
 };

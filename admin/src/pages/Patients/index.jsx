@@ -9,7 +9,7 @@ import {
   LuSearch,
   LuSlidersHorizontal,
 } from 'react-icons/lu';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { usePatients } from '../../context/patientContext/patientContext';
 import { normalizeText } from '../../data/patients';
 import './styles.css';
@@ -29,6 +29,7 @@ function toSlug(value) {
 
 export default function Patients() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { patientState } = usePatients();
   const patients = patientState.patients;
   const [searchTerm, setSearchTerm] = useState('');
@@ -323,10 +324,15 @@ export default function Patients() {
                           <button
                             type="button"
                             className="patient-action-button patient-action-button--primary"
+                            onClick={() => navigate(`/patients/${patient.id}`)}
                           >
                             Detalhes
                           </button>
-                          <button type="button" className="patient-action-button">
+                          <button
+                            type="button"
+                            className="patient-action-button"
+                            onClick={() => navigate(`/patients/${patient.id}/edit`)}
+                          >
                             Editar
                           </button>
                           <button type="button" className="patient-action-button">

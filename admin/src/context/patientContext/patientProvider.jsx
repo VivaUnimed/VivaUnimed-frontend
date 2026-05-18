@@ -3,7 +3,10 @@ import { patientContext as PatientContext } from './patientContext';
 import { patientReducer } from './patientReducer';
 import { patientInitialState } from './patientInitialState';
 import { patientTypes } from './patientTypes';
-import { buildPatientFromForm } from '../../data/patients';
+import {
+  buildPatientFromForm,
+  buildUpdatedPatientFromForm,
+} from '../../data/patients';
 
 const PATIENTS_STORAGE_KEY = 'vivaunimed:patients';
 
@@ -59,12 +62,32 @@ export default function PatientProvider({ children }) {
     return patient;
   };
 
+  const updatePatient = (patientId, updatedPatientData) => {
+    const currentPatient = patientState.patients.find(
+      (patient) => String(patient.id) === String(patientId),
+    );
+
+    if (!currentPatient) {
+      return null;
+    }
+
+    const patient = buildUpdatedPatientFromForm(updatedPatientData, currentPatient);
+
+    patientDispatch({
+      type: patientTypes.UPDATE_PATIENT,
+      payload: { patient },
+    });
+
+    return patient;
+  };
+
   return (
     <PatientContext.Provider
       value={{
         patientState,
         patientDispatch,
         createPatient,
+        updatePatient,
       }}
     >
       {children}

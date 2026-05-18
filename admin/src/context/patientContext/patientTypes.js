@@ -1,3 +1,4 @@
 export const patientTypes = {
   CREATE_PATIENT: 'CREATE_PATIENT',
+  UPDATE_PATIENT: 'UPDATE_PATIENT',
 };
