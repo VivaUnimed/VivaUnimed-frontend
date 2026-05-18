@@ -2,19 +2,25 @@ import { useState } from 'react';
 import { LuChevronLeft, LuHeartPulse, LuSave, LuUserRoundPlus } from 'react-icons/lu';
 import { useNavigate } from 'react-router-dom';
 import { usePatients } from '../../context/patientContext/patientContext';
-import {
-  isPhoneValid,
-  patientStatusOptions,
-  splitPatientInterests,
-} from '../../data/patients';
+import { isPhoneValid, patientStatusOptions } from '../../data/patients';
 import './styles.css';
+
+const specialtyOptions = [
+  'Cardiologia',
+  'Dermatologia',
+  'Ortopedia',
+  'Pediatria',
+  'Ginecologia',
+  'Clínica Médica',
+  'Nutrologia',
+];
 
 const initialFormState = {
   name: '',
   cpf: '',
   phone: '',
   email: '',
-  interests: '',
+  interests: [],
   status: 'Em fila',
 };
 
@@ -43,10 +49,32 @@ export default function CreatePatient() {
     });
   };
 
+  const handleToggleInterest = (specialty) => {
+    const nextInterests = formData.interests.includes(specialty)
+      ? formData.interests.filter((currentSpecialty) => currentSpecialty !== specialty)
+      : [...formData.interests, specialty];
+
+    setFormData((currentFormData) => ({
+      ...currentFormData,
+      interests: nextInterests,
+    }));
+
+    if (nextInterests.length > 0) {
+      setErrors((currentErrors) => {
+        if (!currentErrors.interests) {
+          return currentErrors;
+        }
+
+        const nextErrors = { ...currentErrors };
+        delete nextErrors.interests;
+        return nextErrors;
+      });
+    }
+  };
+
   const validateForm = () => {
     const nextErrors = {};
     const cpfDigits = formData.cpf.replace(/\D/g, '');
-    const interests = splitPatientInterests(formData.interests);
 
     if (!formData.name.trim()) {
       nextErrors.name = 'Informe o nome completo do paciente.';
@@ -64,8 +92,8 @@ export default function CreatePatient() {
       nextErrors.email = 'Informe um e-mail válido.';
     }
 
-    if (!interests.length) {
-      nextErrors.interests = 'Informe ao menos uma especialidade de interesse.';
+    if (!formData.interests.length) {
+      nextErrors.interests = 'Selecione ao menos uma especialidade de interesse.';
     }
 
     return nextErrors;
@@ -81,7 +109,11 @@ export default function CreatePatient() {
       return;
     }
 
-    const patient = createPatient(formData);
+    const patientPayload = {
+      ...formData,
+      interests: formData.interests.join(', '),
+    };
+    const patient = createPatient(patientPayload);
 
     navigate('/patients', {
       state: { successMessage: `Paciente ${patient.name} cadastrado com sucesso.` },
@@ -108,8 +140,8 @@ export default function CreatePatient() {
             </span>
             <h1>Cadastrar paciente</h1>
             <p>
-              Preencha os dados principais para incluir o paciente na fila inteligente
-              e permitir novas confirmações de vaga.
+              Preencha os dados do paciente e selecione as especialidades de interesse
+              para participação na fila inteligente.
             </p>
           </div>
         </div>
@@ -192,20 +224,35 @@ export default function CreatePatient() {
                 </select>
               </label>
 
-              <label className="create-patient-field create-patient-field--full">
+              <div className="create-patient-field create-patient-field--full">
                 <span>Especialidades de interesse</span>
-                <textarea
-                  name="interests"
-                  rows="4"
-                  placeholder="Ex: Cardiologia, Dermatologia, Pediatria"
-                  value={formData.interests}
-                  onChange={handleChange}
-                />
+                <div
+                  className={`create-patient-specialties${errors.interests ? ' create-patient-specialties--error' : ''}`}
+                  role="group"
+                  aria-label="Especialidades de interesse"
+                >
+                  {specialtyOptions.map((specialty) => {
+                    const isSelected = formData.interests.includes(specialty);
+
+                    return (
+                      <button
+                        key={specialty}
+                        type="button"
+                        className={`create-patient-specialty-option${isSelected ? ' create-patient-specialty-option--selected' : ''}`}
+                        onClick={() => handleToggleInterest(specialty)}
+                        aria-pressed={isSelected}
+                      >
+                        {specialty}
+                      </button>
+                    );
+                  })}
+                </div>
                 <small className="create-patient-field__hint">
-                  Separe cada especialidade por vírgula para facilitar os filtros na listagem.
+                  Selecione uma ou mais especialidades para inserir o paciente na fila
+                  inteligente.
                 </small>
                 {errors.interests ? <small>{errors.interests}</small> : null}
-              </label>
+              </div>
             </div>
           </div>
 

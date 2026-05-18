@@ -150,6 +150,61 @@
   min-height: 124px;
 }
 
+.create-patient-specialties {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.create-patient-specialties--error {
+  padding: 14px;
+  border: 1px solid #f3c4b2;
+  border-radius: 18px;
+  background-color: #fff7f2;
+}
+
+.create-patient-specialty-option {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid #d7e4dd;
+  border-radius: 999px;
+  background-color: #f8fcfa;
+  color: #37505c;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.create-patient-specialty-option:hover {
+  transform: translateY(-1px);
+  border-color: #8ab8a4;
+  background-color: #f1faf5;
+}
+
+.create-patient-specialty-option:focus-visible {
+  outline: none;
+  border-color: #008256;
+  box-shadow: 0 0 0 4px rgba(0, 130, 86, 0.12);
+}
+
+.create-patient-specialty-option--selected {
+  border-color: #008256;
+  background: linear-gradient(135deg, #008256 0%, #0f6b47 100%);
+  color: #ffffff;
+  box-shadow: 0 10px 22px rgba(0, 130, 86, 0.18);
+}
+
+.create-patient-specialty-option--selected:hover {
+  border-color: #0f6b47;
+  background: linear-gradient(135deg, #0b8f60 0%, #0f6b47 100%);
+}
+
 .create-patient-field small {
   font-size: 12px;
   line-height: 16px;
