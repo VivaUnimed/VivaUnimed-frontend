@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import {
   LuCalendarDays,
   LuChevronDown,
@@ -35,6 +36,22 @@ const expirationOptions = [
 ];
 
 export default function NoShowRegistration() {
+  const vacancyDateInputRef = useRef(null);
+  const vacancyTimeInputRef = useRef(null);
+
+  const openNativePicker = (input) => {
+    if (!input) {
+      return;
+    }
+
+    if (typeof input.showPicker === 'function') {
+      input.showPicker();
+      return;
+    }
+
+    input.focus();
+  };
+
   return (
     <main className="no-show-registration-page">
       <section className="no-show-registration-header">
@@ -112,8 +129,11 @@ export default function NoShowRegistration() {
 
           <label className="no-show-registration-field">
             <span>Data da Vaga</span>
-            <div className="no-show-registration-input">
-              <input type="text" placeholder="mm/dd/yyyy" />
+            <div
+              className="no-show-registration-input no-show-registration-input--picker"
+              onClick={() => openNativePicker(vacancyDateInputRef.current)}
+            >
+              <input ref={vacancyDateInputRef} type="date" />
               <LuCalendarDays
                 size={18}
                 className="no-show-registration-input__icon"
@@ -123,8 +143,11 @@ export default function NoShowRegistration() {
 
           <label className="no-show-registration-field">
             <span>Horário Específico</span>
-            <div className="no-show-registration-input">
-              <input type="text" placeholder="--:-- --" />
+            <div
+              className="no-show-registration-input no-show-registration-input--picker"
+              onClick={() => openNativePicker(vacancyTimeInputRef.current)}
+            >
+              <input ref={vacancyTimeInputRef} type="time" />
               <LuClock3
                 size={18}
                 className="no-show-registration-input__icon"
