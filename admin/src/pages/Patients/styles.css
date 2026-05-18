@@ -398,14 +398,20 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: 18px;
+  height: 18px;
 }
 
-.patient-contact-status--valid {
-  color: #008256;
+.patient-contact-status svg {
+  display: block;
 }
 
-.patient-contact-status--invalid {
-  color: #d14343;
+.patient-contact-status--valid svg {
+  stroke: #008256;
+}
+
+.patient-contact-status--invalid svg {
+  stroke: #d14343;
 }
 
 .patient-interests {
