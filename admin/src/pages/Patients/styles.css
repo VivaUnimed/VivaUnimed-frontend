@@ -37,6 +37,10 @@
   flex-wrap: wrap;
 }
 
+.patients-header__link {
+  text-decoration: none;
+}
+
 .patients-header__button {
   height: 44px;
   padding: 0 18px;
@@ -127,6 +131,29 @@
   box-shadow: 0 12px 24px rgba(0, 127, 79, 0.22);
   position: relative;
   overflow: hidden;
+}
+
+.patients-feedback-banner {
+  min-height: 52px;
+  margin-bottom: 22px;
+  padding: 0 16px;
+  border: 1px solid #d7efe4;
+  border-radius: 14px;
+  background-color: #eefaf5;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.patients-feedback-banner svg {
+  stroke: #008256;
+  flex-shrink: 0;
+}
+
+.patients-feedback-banner span {
+  color: #0f6b47;
+  font-size: 13px;
+  font-weight: 800;
 }
 
 .patient-stat-card--highlight::after {
@@ -576,6 +603,11 @@
   font-size: 13px;
   font-weight: 800;
   cursor: pointer;
+}
+
+.patients-pagination button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .patients-pagination .patients-pagination__active {

@@ -9,119 +9,11 @@ import {
   LuSearch,
   LuSlidersHorizontal,
 } from 'react-icons/lu';
+import { NavLink, useLocation } from 'react-router-dom';
+import { usePatients } from '../../context/patientContext/patientContext';
+import { normalizeText } from '../../data/patients';
 import './styles.css';
 
-const totalPatientsLabel = '1.284';
-
-const summaryCards = [
-  {
-    id: 1,
-    title: 'TOTAL DE PACIENTES',
-    value: totalPatientsLabel,
-    helper: '+12% este mês',
-    modifier: 'default',
-  },
-  {
-    id: 2,
-    title: 'EM FILA INTELIGENTE',
-    value: '42',
-    helper: 'Tempo médio: 14 min',
-    modifier: 'neutral',
-  },
-  {
-    id: 3,
-    title: 'CONFIRMADOS HOJE',
-    value: '18',
-    helper: 'Vagas remanescentes preenchidas',
-    modifier: 'highlight',
-  },
-];
-
-const patients = [
-  {
-    id: 1,
-    name: 'Beatriz Helena Ferreira',
-    cpf: '123.***.***-01',
-    phone: '(53) 99999-0001',
-    email: 'beatriz@email.com',
-    phoneValid: true,
-    interests: ['Dermatologia', 'Cardiologia'],
-    status: 'Ativo',
-    lastNotificationDate: '12 Mai, 2024',
-    lastNotificationStatus: 'Enviada',
-    lastConfirmationDate: '18 Jun, 2024',
-    lastConfirmationSpecialty: 'Dermatologia',
-    avatar:
-      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=face',
-  },
-  {
-    id: 2,
-    name: 'Ricardo Mendes Albuquerque',
-    cpf: '892.***.***-45',
-    phone: '(53) 99999-1120',
-    email: 'ricardo.mendes@email.com',
-    phoneValid: false,
-    interests: ['Ortopedia', 'Fisiatria'],
-    status: 'Em fila',
-    lastNotificationDate: '16 Jun, 2024',
-    lastNotificationStatus: 'Falhou',
-    lastConfirmationDate: '',
-    lastConfirmationSpecialty: '',
-    avatar:
-      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop&crop=face',
-  },
-  {
-    id: 3,
-    name: 'Joaquim de Souza Neto',
-    cpf: '541.***.***-22',
-    phone: '(53) 98888-4321',
-    email: 'joaquim.neto@email.com',
-    phoneValid: true,
-    interests: ['Neurologia', 'Clínica Médica', 'Cardiologia'],
-    status: 'Inativo',
-    lastNotificationDate: 'Sem envio',
-    lastNotificationStatus: 'Sem envio',
-    lastConfirmationDate: '',
-    lastConfirmationSpecialty: '',
-    avatar:
-      'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=80&h=80&fit=crop&crop=face',
-  },
-  {
-    id: 4,
-    name: 'Mariana Luzia Santos',
-    cpf: '211.***.***-98',
-    phone: '(53) 99777-2054',
-    email: 'mariana.luzia@email.com',
-    phoneValid: true,
-    interests: ['Nutrologia', 'Endocrinologia'],
-    status: 'Ativo',
-    lastNotificationDate: '18 Jun, 2024',
-    lastNotificationStatus: 'Enviada',
-    lastConfirmationDate: '18 Jun, 2024',
-    lastConfirmationSpecialty: 'Nutrologia',
-    avatar:
-      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&h=80&fit=crop&crop=face',
-  },
-  {
-    id: 5,
-    name: 'Ana Carolina Rocha',
-    cpf: '734.***.***-63',
-    phone: '(53) 99666-7810',
-    email: 'ana.rocha@email.com',
-    phoneValid: true,
-    interests: ['Pediatria', 'Alergologia'],
-    status: 'Em fila',
-    lastNotificationDate: '17 Jun, 2024',
-    lastNotificationStatus: 'Enviada',
-    lastConfirmationDate: '',
-    lastConfirmationSpecialty: '',
-    avatar:
-      'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?w=80&h=80&fit=crop&crop=face',
-  },
-];
-
-const statusOptions = ['Ativo', 'Em fila', 'Inativo'];
-const specialtyOptions = [...new Set(patients.flatMap((patient) => patient.interests))];
 const contactOptions = [
   { value: 'valid', label: 'Telefone válido' },
   { value: 'invalid', label: 'Telefone inválido' },
@@ -136,17 +28,22 @@ function toSlug(value) {
 }
 
 export default function Patients() {
+  const location = useLocation();
+  const { patientState } = usePatients();
+  const patients = patientState.patients;
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [specialtyFilter, setSpecialtyFilter] = useState('');
   const [contactFilter, setContactFilter] = useState('');
+  const feedbackMessage = location.state?.successMessage ?? '';
 
-  const normalizedSearchTerm = searchTerm.trim().toLowerCase();
+  const normalizedSearchTerm = normalizeText(searchTerm.trim());
+  const statusOptions = [...new Set(patients.map((patient) => patient.status))];
+  const specialtyOptions = [
+    ...new Set(patients.flatMap((patient) => patient.interests)),
+  ].sort((firstValue, secondValue) => firstValue.localeCompare(secondValue, 'pt-BR'));
   const hasActiveFilters = Boolean(
-    normalizedSearchTerm
-    || statusFilter
-    || specialtyFilter
-    || contactFilter
+    normalizedSearchTerm || statusFilter || specialtyFilter || contactFilter,
   );
 
   const handleClearFilters = () => {
@@ -157,26 +54,48 @@ export default function Patients() {
   };
 
   const filteredPatients = patients.filter((patient) => {
-    const matchesSearch = !normalizedSearchTerm
-      || [
-        patient.name,
-        patient.phone,
-        patient.email,
-        patient.cpf,
-      ].some((value) => value.toLowerCase().includes(normalizedSearchTerm));
+    const matchesSearch =
+      !normalizedSearchTerm ||
+      [patient.name, patient.phone, patient.email, patient.cpf, ...patient.interests].some(
+        (value) => normalizeText(value).includes(normalizedSearchTerm),
+      );
 
     const matchesStatus = !statusFilter || patient.status === statusFilter;
-    const matchesSpecialty = !specialtyFilter || patient.interests.includes(specialtyFilter);
-    const matchesContact = !contactFilter
-      || (contactFilter === 'valid' ? patient.phoneValid : !patient.phoneValid);
+    const matchesSpecialty =
+      !specialtyFilter || patient.interests.includes(specialtyFilter);
+    const matchesContact =
+      !contactFilter ||
+      (contactFilter === 'valid' ? patient.phoneValid : !patient.phoneValid);
 
-    return (
-      matchesSearch
-      && matchesStatus
-      && matchesSpecialty
-      && matchesContact
-    );
+    return matchesSearch && matchesStatus && matchesSpecialty && matchesContact;
   });
+
+  const totalPatientsLabel = patients.length.toLocaleString('pt-BR');
+  const summaryCards = [
+    {
+      id: 1,
+      title: 'TOTAL DE PACIENTES',
+      value: totalPatientsLabel,
+      helper: 'Cadastros ativos na listagem',
+      modifier: 'default',
+    },
+    {
+      id: 2,
+      title: 'EM FILA INTELIGENTE',
+      value: patients.filter((patient) => patient.status === 'Em fila').length.toString(),
+      helper: 'Pacientes aguardando disparo',
+      modifier: 'neutral',
+    },
+    {
+      id: 3,
+      title: 'COM CONFIRMAÇÃO',
+      value: patients
+        .filter((patient) => patient.lastConfirmationDate)
+        .length.toString(),
+      helper: 'Pacientes com retorno registrado',
+      modifier: 'highlight',
+    },
+  ];
 
   return (
     <main className="patients-page">
@@ -195,15 +114,22 @@ export default function Patients() {
             Importar pacientes
           </button>
 
-          <button
-            type="button"
-            className="patients-header__button patients-header__button--primary"
+          <NavLink
+            to="/patients/new"
+            className="patients-header__button patients-header__button--primary patients-header__link"
           >
             <LuPlus size={18} />
             Novo paciente
-          </button>
+          </NavLink>
         </div>
       </section>
+
+      {feedbackMessage ? (
+        <div className="patients-feedback-banner" role="status">
+          <LuBadgeCheck size={18} />
+          <span>{feedbackMessage}</span>
+        </div>
+      ) : null}
 
       <section className="patients-stats">
         {summaryCards.map((card) => (
@@ -223,7 +149,7 @@ export default function Patients() {
           <LuSearch size={18} />
           <input
             type="text"
-            placeholder="Buscar por nome, telefone, e-mail ou CPF..."
+            placeholder="Buscar por nome, telefone, e-mail, CPF ou interesse..."
             value={searchTerm}
             onChange={(event) => setSearchTerm(event.target.value)}
           />
@@ -353,9 +279,9 @@ export default function Patients() {
                             </span>
                           ))}
 
-                          {hiddenInterests > 0 && (
+                          {hiddenInterests > 0 ? (
                             <span className="patient-interest-badge">+{hiddenInterests}</span>
-                          )}
+                          ) : null}
                         </div>
                       </td>
 
@@ -384,7 +310,7 @@ export default function Patients() {
                               {patient.lastConfirmationSpecialty}
                             </span>
                           </>
-                          ) : (
+                        ) : (
                           <>
                             <strong className="table-main-text">Nenhuma confirmação</strong>
                             <span className="table-secondary-text">Sem retorno registrado</span>
@@ -428,13 +354,21 @@ export default function Patients() {
           </span>
 
           <div className="patients-pagination">
-            <button type="button">‹</button>
+            <button type="button" disabled>
+              ‹
+            </button>
             <button type="button" className="patients-pagination__active">
               1
             </button>
-            <button type="button">2</button>
-            <button type="button">3</button>
-            <button type="button">›</button>
+            <button type="button" disabled>
+              2
+            </button>
+            <button type="button" disabled>
+              3
+            </button>
+            <button type="button" disabled>
+              ›
+            </button>
           </div>
         </div>
       </section>
