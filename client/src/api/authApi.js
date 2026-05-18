@@ -1,4 +1,3 @@
-import { useNavigate } from 'react-router-dom';
 import * as authTypes from '../context/authContext/authTypes';
 import { postRequest } from './api';
 import { toast } from 'react-toastify';
@@ -37,6 +36,7 @@ export const signup = async (userCredentials, dispatch) => {
       type: authTypes.SIGNUP_FAILURE,
       payload: { error: error.message },
     });
+    throw error;
   }
 };
 
@@ -92,13 +92,11 @@ export const logout = async (dispatch) => {
   dispatch({ type: authTypes.LOGOUT_REQUEST });
 
   try {
-    await postRequest('/usuarios/logout', {});
-
-    const data = await toast.promise(postRequest('/usuarios/logout', {}), {
+    await toast.promise(postRequest('/usuarios/logout', {}), {
       pending: 'Saindo...',
       error: {
         render({ data }) {
-          return data?.response?.data?.message || 'E-mail ou senha incorretos';
+          return data?.response?.data?.message || 'Nao foi possivel sair no servidor';
         },
       },
     });
