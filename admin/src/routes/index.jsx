@@ -27,7 +27,7 @@ export const RoutesApp = () => {
           <Route path="/professionals/new" element={<CreateProfessional />} />
           <Route path="/weeklySchedule" element={<WeeklySchedule/>} />
           <Route path="/vacancies" element={<Vacancies/>} />
-          <Route path="/NoShowRegistration" element={<NoShowRegistration/>} />
+          <Route path="/vacancies/new" element={<NoShowRegistration/>} />
           <Route path="/patients" element={<Patients/>} />
           <Route path="/settings" element={<div/>} />
         </Route>

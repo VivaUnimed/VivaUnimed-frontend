@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import {
   LuCalendarCheck,
@@ -164,6 +165,7 @@ function formatSummaryValue(value) {
 }
 
 export default function Vacancies() {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [vacancyStatusFilter, setVacancyStatusFilter] = useState('');
   const [dispatchStatusFilter, setDispatchStatusFilter] = useState('');
@@ -217,7 +219,11 @@ export default function Vacancies() {
           </p>
         </div>
 
-        <button type="button" className="new-vacancy-button">
+        <button
+          type="button"
+          className="new-vacancy-button"
+          onClick={() => navigate('/vacancies/new')}
+        >
           <LuPlus size={18} />
           Nova vaga
         </button>

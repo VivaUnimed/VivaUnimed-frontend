@@ -3,7 +3,6 @@ import Logo from '../../ui/Logo';
 import {
   LuLayoutGrid,
   LuCalendarDays,
-  LuCalendarX2,
   LuUsers,
   LuSettings,
   LuLogOut,
@@ -46,11 +45,6 @@ export default function Sidebar() {
           <NavLink to="/patients" className="sidebar__link">
             <LuUsers className="sidebar__icon" />
             <span>Pacientes</span>
-          </NavLink>
-
-          <NavLink to="/NoShowRegistration" className="sidebar__link">
-            <LuCalendarX2 className="sidebar__icon" />
-            <span>Cadastro No-Show</span>
           </NavLink>
         </nav>
       </div>
