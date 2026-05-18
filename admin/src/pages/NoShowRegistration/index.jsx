@@ -1,6 +1,8 @@
 import { useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   LuCalendarDays,
+  LuChevronLeft,
   LuChevronDown,
   LuClock3,
   LuMapPin,
@@ -36,6 +38,7 @@ const expirationOptions = [
 ];
 
 export default function NoShowRegistration() {
+  const navigate = useNavigate();
   const vacancyDateInputRef = useRef(null);
   const vacancyTimeInputRef = useRef(null);
 
@@ -56,9 +59,14 @@ export default function NoShowRegistration() {
     <main className="no-show-registration-page">
       <section className="no-show-registration-header">
         <div>
-          <span className="no-show-registration-header__eyebrow">
-            Cadastro de Disponibilidade
-          </span>
+          <button
+            type="button"
+            className="no-show-registration-back-button"
+            onClick={() => navigate('/vacancies')}
+          >
+            <LuChevronLeft size={20} />
+            Voltar para vagas
+          </button>
           <h1>Nova Vaga Remanescente</h1>
           <p>
             Preencha as informações para registrar uma disponibilidade e
