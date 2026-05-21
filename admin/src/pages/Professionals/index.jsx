@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import {
+  LuBadgeCheck,
   LuUserPlus,
   LuSlidersHorizontal,
   LuSearch,
@@ -7,74 +8,29 @@ import {
   LuRefreshCw,
 } from 'react-icons/lu';
 import './styles.css';
-import { NavLink } from 'react-router-dom';
-
-const professionals = [
-  {
-    id: 1,
-    name: 'Dra. Beatriz Santos',
-    email: 'beatriz.santos@unimed.com',
-    specialties: ['Ginecologia', 'Obstetrícia'],
-    crm: 'CRM-RS 12345',
-    unit: 'Unidade Centro',
-    status: 'Ativo',
-    avatar:
-      'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=80&h=80&fit=crop&crop=face',
-  },
-  {
-    id: 2,
-    name: 'Dr. Ricardo Oliveira',
-    email: 'ricardo.o@unimed.com',
-    specialties: ['Ortopedia', 'Clínica Médica'],
-    crm: 'CRM-RS 54321',
-    unit: 'Unidade Cassino',
-    status: 'Ativo',
-    avatar:
-      'https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=80&h=80&fit=crop&crop=face',
-  },
-  {
-    id: 3,
-    name: 'Dra. Mariana Lima',
-    email: 'm.lima@unimed.com',
-    specialties: ['Clínica Médica', 'Cardiologia', 'Pediatria'],
-    crm: 'CRM-RS 98765',
-    unit: 'Unidade São Pedro',
-    status: 'Inativo',
-    avatar:
-      'https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=80&h=80&fit=crop&crop=face',
-  },
-  {
-    id: 4,
-    name: 'Dr. Felipe Arantes',
-    email: 'f.arantes@unimed.com',
-    specialties: ['Cardiologia', 'Dermatologia', 'Clínica Médica'],
-    crm: 'CRM-RS 67899',
-    unit: 'Unidade Centro',
-    status: 'Ativo',
-    avatar:
-      'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=80&h=80&fit=crop&crop=face',
-  },
-];
-
-const totalProfessionalsLabel = '142';
-const statusOptions = ['Ativo', 'Inativo'];
-const specialtyOptions = [
-  ...new Set(professionals.flatMap((professional) => professional.specialties)),
-];
-const unitOptions = [...new Set(professionals.map((professional) => professional.unit))];
-
-function normalizeText(value) {
-  return value
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '');
-}
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import {
+  formatProfessionalRegistration,
+  getProfessionalSpecialtyOptions,
+  getProfessionalUnitOptions,
+  getStoredProfessionals,
+  normalizeText,
+  toggleMockProfessionalStatus,
+} from '../../data/professionals';
 
 export default function Professionals() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const feedbackMessage = location.state?.successMessage ?? '';
+  const [professionals, setProfessionals] = useState(() => getStoredProfessionals());
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [specialtyFilter, setSpecialtyFilter] = useState('');
   const [unitFilter, setUnitFilter] = useState('');
+  const totalProfessionalsLabel = professionals.length.toLocaleString('pt-BR');
+  const statusOptions = [...new Set(professionals.map((professional) => professional.status))];
+  const specialtyOptions = getProfessionalSpecialtyOptions(professionals);
+  const unitOptions = getProfessionalUnitOptions(professionals);
 
   const normalizedSearchTerm = normalizeText(searchTerm.trim());
   const hasActiveFilters = Boolean(
@@ -88,13 +44,29 @@ export default function Professionals() {
     setUnitFilter('');
   };
 
+  const handleToggleStatus = (professionalId) => {
+    const updatedProfessional = toggleMockProfessionalStatus(professionalId);
+
+    if (!updatedProfessional) {
+      return;
+    }
+
+    setProfessionals((currentProfessionals) =>
+      currentProfessionals.map((professional) =>
+        professional.id === updatedProfessional.id
+          ? updatedProfessional
+          : professional,
+      ),
+    );
+  };
+
   const filteredProfessionals = professionals.filter((professional) => {
     const matchesSearch =
       !normalizedSearchTerm ||
       [
         professional.name,
         professional.email,
-        professional.crm,
+        formatProfessionalRegistration(professional),
         ...professional.specialties,
       ].some((value) => normalizeText(value).includes(normalizedSearchTerm));
 
@@ -125,6 +97,13 @@ export default function Professionals() {
           </button>
         </NavLink>
       </section>
+
+      {feedbackMessage ? (
+        <div className="professionals-feedback-banner" role="status">
+          <LuBadgeCheck size={18} />
+          <span>{feedbackMessage}</span>
+        </div>
+      ) : null}
 
       <section className="professionals-content">
         <div className="professionals-table-card">
@@ -269,7 +248,9 @@ export default function Professionals() {
                         </td>
 
                         <td>
-                          <span className="crm-badge">{professional.crm}</span>
+                          <span className="crm-badge">
+                            {formatProfessionalRegistration(professional)}
+                          </span>
                         </td>
 
                         <td>
@@ -295,6 +276,9 @@ export default function Professionals() {
                             <button
                               type="button"
                               className="professional-actions__edit"
+                              onClick={() =>
+                                navigate(`/professionals/${professional.id}/edit`)
+                              }
                             >
                               Editar
                             </button>
@@ -306,6 +290,7 @@ export default function Professionals() {
                                   ? 'professional-actions__disable'
                                   : 'professional-actions__enable'
                               }
+                              onClick={() => handleToggleStatus(professional.id)}
                             >
                               {professional.status === 'Ativo'
                                 ? 'Desativar'

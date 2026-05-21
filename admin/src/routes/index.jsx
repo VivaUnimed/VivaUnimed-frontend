@@ -10,6 +10,7 @@ import Vacancies from '../pages/Vacancies';
 import Patients from '../pages/Patients';
 import WeeklySchedule from '../pages/WeeklySchedule';
 import CreateProfessional from '../pages/CreateProfessional';
+import EditProfessional from '../pages/EditProfessional';
 import NoShowRegistration from '../pages/NoShowRegistration';
 import CreatePatient from '../pages/CreatePatient';
 import PatientDetails from '../pages/PatientDetails';
@@ -29,6 +30,7 @@ export const RoutesApp = () => {
           <Route path="/" element={<AdminDashboard/>} />
           <Route path="/professionals" element={<Professionals />} />
           <Route path="/professionals/new" element={<CreateProfessional />} />
+          <Route path="/professionals/:professionalId/edit" element={<EditProfessional />} />
           <Route path="/specialties" element={<Specialties />} />
           <Route path="/weeklySchedule" element={<WeeklySchedule/>} />
           <Route path="/vacancies" element={<Vacancies/>} />

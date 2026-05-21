@@ -56,6 +56,29 @@
   margin-bottom: 36px;
 }
 
+.professionals-feedback-banner {
+  min-height: 52px;
+  margin-bottom: 22px;
+  padding: 0 16px;
+  border: 1px solid #d7efe4;
+  border-radius: 14px;
+  background-color: #eefaf5;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.professionals-feedback-banner svg {
+  stroke: #008256;
+  flex-shrink: 0;
+}
+
+.professionals-feedback-banner span {
+  color: #0f6b47;
+  font-size: 13px;
+  font-weight: 800;
+}
+
 .professionals-table-card {
   width: 100%;
   min-width: 0;
