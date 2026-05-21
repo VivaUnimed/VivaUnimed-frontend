@@ -421,7 +421,11 @@ export default function CreateProfessional() {
               </span>
             </div>
 
-            <div className="create-professional-days">
+            <div
+              className="create-professional-days"
+              role="group"
+              aria-label="Dias de atendimento"
+            >
               {weekDayOptions.map((day) => {
                 const isSelected = selectedDays.includes(day);
 
@@ -431,6 +435,7 @@ export default function CreateProfessional() {
                     type="button"
                     className={`create-professional-day-button${isSelected ? ' create-professional-day-button--active' : ''}`}
                     onClick={() => handleToggleDay(day)}
+                    aria-pressed={isSelected}
                   >
                     {day}
                   </button>

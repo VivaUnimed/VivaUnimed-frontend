@@ -378,7 +378,7 @@
   min-width: 74px;
   height: 46px;
   padding: 0 16px;
-  border: none;
+  border: 1px solid #ece7e3;
   border-radius: 12px;
   background-color: #f3efec;
   color: #5f6368;
@@ -386,18 +386,39 @@
   font-weight: 700;
   cursor: pointer;
   transition:
-    transform 0.2s ease,
+    transform 0.12s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
     background-color 0.2s ease,
     color 0.2s ease;
 }
 
 .create-professional-day-button:hover {
-  transform: translateY(-1px);
   background-color: #edf6f1;
+  border-color: #b8d4c6;
+  color: #355445;
+}
+
+.create-professional-day-button:active {
+  transform: scale(0.98);
+}
+
+.create-professional-day-button:focus-visible {
+  outline: none;
+  border-color: #008256;
+  box-shadow: 0 0 0 4px rgba(0, 130, 86, 0.12);
 }
 
 .create-professional-day-button--active {
-  background-color: #008256;
+  border-color: #008256;
+  background: linear-gradient(135deg, #008256 0%, #0f6b47 100%);
+  color: #ffffff;
+  box-shadow: 0 8px 18px rgba(0, 127, 79, 0.2);
+}
+
+.create-professional-day-button--active:hover {
+  border-color: #0f6b47;
+  background: linear-gradient(135deg, #0a8e5f 0%, #0f6b47 100%);
   color: #ffffff;
 }
 
