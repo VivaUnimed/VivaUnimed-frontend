@@ -335,9 +335,7 @@ export default function Patients() {
                           >
                             Editar
                           </button>
-                          <button type="button" className="patient-action-button">
-                            Histórico
-                          </button>
+                          
                         </div>
                       </td>
                     </tr>
