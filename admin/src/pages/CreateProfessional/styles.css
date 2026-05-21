@@ -90,7 +90,7 @@
   gap: 8px;
 }
 
-.create-professional-section .create-professional-field + .create-professional-field {
+.create-professional-section > .create-professional-field + .create-professional-field {
   margin-top: 18px;
 }
 
@@ -105,7 +105,8 @@
 
 .create-professional-field input,
 .create-professional-field select,
-.create-professional-time-inputs input {
+.create-professional-time-inputs input,
+.create-professional-time-inputs select {
   width: 100%;
   min-height: 50px;
   padding: 0 16px;
@@ -129,9 +130,14 @@
 
 .create-professional-field input:focus,
 .create-professional-field select:focus,
-.create-professional-time-inputs input:focus {
+.create-professional-time-inputs input:focus,
+.create-professional-time-inputs select:focus {
   border-color: #008256;
   box-shadow: 0 0 0 4px rgba(0, 130, 86, 0.08);
+}
+
+.create-professional-time-inputs select {
+  cursor: pointer;
 }
 
 .create-professional-input--error {
@@ -356,6 +362,18 @@
   margin-bottom: 28px;
 }
 
+.create-professional-time-hint {
+  margin-bottom: 18px;
+  padding: 12px 14px;
+  border: 1px solid #d7e4dd;
+  border-radius: 14px;
+  background-color: #f7fbf8;
+  color: #426253;
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 700;
+}
+
 .create-professional-day-button {
   min-width: 74px;
   height: 46px;
@@ -416,6 +434,15 @@
 .create-professional-time-inputs span {
   font-size: 13px;
   color: #5f6368;
+}
+
+.create-professional-time-inputs input[type='time'] {
+  cursor: pointer;
+}
+
+.create-professional-time-inputs input[type='time']::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.8;
 }
 
 .create-professional-schedule-notice {

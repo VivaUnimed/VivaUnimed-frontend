@@ -40,10 +40,10 @@ const defaultFormData = {
   unit: '',
   profilePhoto: null,
   status: 'Ativo',
-  morningStart: '08:00 AM',
-  morningEnd: '12:00 PM',
-  afternoonStart: '01:30 PM',
-  afternoonEnd: '06:00 PM',
+  morningStart: '08:00',
+  morningEnd: '12:00',
+  afternoonStart: '13:30',
+  afternoonEnd: '18:00',
 };
 
 const defaultSelectedDays = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex'];
@@ -438,6 +438,11 @@ export default function CreateProfessional() {
               })}
             </div>
 
+            <div className="create-professional-time-hint">
+              Clique no campo de horário para ver sugestões prontas ou digite
+              manualmente.
+            </div>
+
             <div className="create-professional-time-grid">
               <div className="create-professional-time-card">
                 <div className="create-professional-time-card__title">
@@ -447,17 +452,19 @@ export default function CreateProfessional() {
 
                 <div className="create-professional-time-inputs">
                   <input
-                    type="text"
+                    type="time"
                     name="morningStart"
                     value={formData.morningStart}
                     onChange={handleChange}
+                    step="1800"
                   />
                   <span>até</span>
                   <input
-                    type="text"
+                    type="time"
                     name="morningEnd"
                     value={formData.morningEnd}
                     onChange={handleChange}
+                    step="1800"
                   />
                 </div>
               </div>
@@ -470,17 +477,19 @@ export default function CreateProfessional() {
 
                 <div className="create-professional-time-inputs">
                   <input
-                    type="text"
+                    type="time"
                     name="afternoonStart"
                     value={formData.afternoonStart}
                     onChange={handleChange}
+                    step="1800"
                   />
                   <span>até</span>
                   <input
-                    type="text"
+                    type="time"
                     name="afternoonEnd"
                     value={formData.afternoonEnd}
                     onChange={handleChange}
+                    step="1800"
                   />
                 </div>
               </div>
