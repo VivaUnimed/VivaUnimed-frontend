@@ -170,6 +170,46 @@
   );
 }
 
+.alertas-tabs {
+  width: 100%;
+
+  background: #dfe5e8;
+
+  border-radius: 14px;
+
+  padding: 4px;
+  margin-bottom: 18px;
+
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+}
+
+.alertas-tab {
+  min-height: 42px;
+
+  border: none;
+  border-radius: 10px;
+
+  background: transparent;
+  color: #64727d;
+
+  padding: 6px 8px;
+
+  font-size: 10px;
+  line-height: 1.15;
+  font-weight: 800;
+
+  cursor: pointer;
+}
+
+.alertas-tab.active {
+  background: #f7f7f7;
+  color: #0a8f4c;
+
+  box-shadow: 0 6px 16px rgba(31, 41, 55, 0.08);
+}
+
 .alertas-section-title {
   display: flex;
   align-items: center;
@@ -214,6 +254,10 @@
   gap: 14px;
 
   position: relative;
+}
+
+.hidden-alerta {
+  display: none;
 }
 
 .alerta-item.warning::before {

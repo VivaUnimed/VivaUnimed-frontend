@@ -16,8 +16,14 @@ import {
 
 export default function Alertas() {
   const contentRef = useRef(null);
-  const lastScrollTop = useRef(0);
   const [isCriticalHidden, setIsCriticalHidden] = useState(false);
+  const [activeTab, setActiveTab] = useState("recentes");
+
+  const tabs = [
+    { key: "recentes", label: "Recentes" },
+    { key: "vagas", label: "Vagas em tempo real" },
+    { key: "exames", label: "Exames e relatorios" },
+  ];
 
   useEffect(() => {
     const contentNode = contentRef.current;
@@ -28,10 +34,7 @@ export default function Alertas() {
           ? contentNode.scrollTop
           : window.scrollY;
 
-      const isScrollingDown = currentScrollTop > lastScrollTop.current;
-
-      setIsCriticalHidden(isScrollingDown && currentScrollTop > 24);
-      lastScrollTop.current = Math.max(currentScrollTop, 0);
+      setIsCriticalHidden(currentScrollTop > 48);
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -96,6 +99,23 @@ export default function Alertas() {
 
           </section>
 
+          <section className="alertas-tabs" aria-label="Tipos de alertas">
+            {tabs.map((tab) => (
+              <button
+                key={tab.key}
+                type="button"
+                className={`alertas-tab ${
+                  activeTab === tab.key ? "active" : ""
+                }`}
+                onClick={() => setActiveTab(tab.key)}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </section>
+
+          {activeTab === "recentes" && (
+          <>
           {/* SECTION TITLE */}
           <section className="alertas-section-title">
 
@@ -207,7 +227,7 @@ export default function Alertas() {
             </div>
 
             {/* ALERTA 4 */}
-            <div className="alerta-item">
+            <div className="alerta-item hidden-alerta">
 
               <div className="alerta-item-icon light">
                 <Droplets size={16} />
@@ -235,7 +255,7 @@ export default function Alertas() {
             </div>
 
             {/* ALERTA 5 */}
-            <div className="alerta-item success">
+            <div className="alerta-item success hidden-alerta">
 
               <div className="alerta-item-icon green">
                 <FileCheck2 size={16} />
@@ -267,7 +287,11 @@ export default function Alertas() {
             </div>
 
           </section>
+          </>
+          )}
 
+          {activeTab === "vagas" && (
+          <>
           {/* LIVE VACANCIES */}
           <section className="tempo-real-section">
 
@@ -407,6 +431,115 @@ export default function Alertas() {
             </div>
 
           </section>
+          </>
+          )}
+
+          {activeTab === "exames" && (
+          <>
+          <section className="alertas-section-title">
+
+            <h3>Exames e relatorios</h3>
+
+            <button>
+              Marcar todas como lidas
+            </button>
+
+          </section>
+
+          <section className="alertas-list">
+
+            <div className="alerta-item success">
+
+              <div className="alerta-item-icon green">
+                <FileCheck2 size={16} />
+              </div>
+
+              <div className="alerta-item-content">
+
+                <div className="alerta-item-top">
+                  <span className="alerta-label green">
+                    RESULTADOS
+                  </span>
+
+                  <small>Ontem</small>
+                </div>
+
+                <h4>Exames laboratoriais prontos</h4>
+
+                <p>
+                  Seus resultados de Hemograma e Glicemia
+                  ja estao disponiveis no app.
+                </p>
+
+                <button className="alerta-link-btn">
+                  Ver resultados
+                </button>
+
+              </div>
+
+            </div>
+
+            <div className="alerta-item">
+
+              <div className="alerta-item-icon gray">
+                <ClipboardCheck size={16} />
+              </div>
+
+              <div className="alerta-item-content">
+
+                <div className="alerta-item-top">
+                  <span className="alerta-label gray">
+                    RELATORIO
+                  </span>
+
+                  <small>2 dias atras</small>
+                </div>
+
+                <h4>Relatorio de consulta liberado</h4>
+
+                <p>
+                  O resumo da sua consulta com a endocrinologia
+                  foi atualizado para revisao.
+                </p>
+
+                <button className="alerta-link-btn">
+                  Abrir relatorio
+                </button>
+
+              </div>
+
+            </div>
+
+            <div className="alerta-item">
+
+              <div className="alerta-item-icon light">
+                <Droplets size={16} />
+              </div>
+
+              <div className="alerta-item-content">
+
+                <div className="alerta-item-top">
+                  <span className="alerta-label light">
+                    DICA DE SAUDE
+                  </span>
+
+                  <small>Ontem</small>
+                </div>
+
+                <h4>Hidratacao e Exames</h4>
+
+                <p>
+                  Mantenha-se hidratado para o seu exame
+                  de sangue de quinta-feira.
+                </p>
+
+              </div>
+
+            </div>
+
+          </section>
+          </>
+          )}
 
         </main>
 
