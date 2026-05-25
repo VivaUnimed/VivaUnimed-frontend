@@ -15,16 +15,6 @@ import {
 import { normalizeText } from '../../data/professionals';
 import './styles.css';
 
-const weekDays = [
-  { day: 'SEG', number: '23', date: '2023-10-23' },
-  { day: 'TER', number: '24', date: '2023-10-24', active: true },
-  { day: 'QUA', number: '25', date: '2023-10-25' },
-  { day: 'QUI', number: '26', date: '2023-10-26' },
-  { day: 'SEX', number: '27', date: '2023-10-27' },
-  { day: 'SÁB', number: '28', date: '2023-10-28', disabled: true },
-  { day: 'DOM', number: '29', date: '2023-10-29', disabled: true },
-];
-
 const timeSlots = [
   '08:00',
   '09:00',
@@ -62,96 +52,260 @@ const statusFilterOptions = [
   { value: 'expired', label: 'Expirada' },
 ];
 
-const operationalEvents = [
-  {
-    id: 1,
-    date: '2023-10-23',
-    time: '08:00',
-    type: 'OCUPADO',
-    patient: 'Beatriz Oliveira',
-    details: 'Cardiologia - Dra. Mariana Lopes',
-    specialty: 'Cardiologia',
-    professional: 'Dra. Mariana Lopes',
-    status: 'occupied',
-  },
-  {
-    id: 2,
-    date: '2023-10-24',
-    time: '08:00',
-    type: 'OCUPADO',
-    patient: 'Marcos Silva',
-    details: 'Ortopedia - Sala 02',
-    specialty: 'Ortopedia',
-    professional: 'Dr. Carlos Mendes',
-    status: 'occupied',
-  },
-  {
-    id: 3,
-    date: ' ',
-    time: '10:00',
-    type: 'CONFIRMADA PELA FILA',
-    patient: 'Ana Paula',
-    details: 'Cardiologia - Dr. Ricardo Almeida',
-    specialty: 'Cardiologia',
-    professional: 'Dr. Ricardo Almeida',
-    status: 'confirmed_by_queue',
-  },
-  {
-    id: 4,
-    date: '2023-10-25',
-    time: '09:00',
-    type: 'CANCELADO',
-    patient: 'Atendimento cancelado',
-    details: 'Horário disponível para reaproveitamento',
-    specialty: 'Ortopedia',
-    professional: 'Dra. Juliana Castro',
-    status: 'cancelled',
-  },
-  {
-    id: 5,
-    date: '2023-10-26',
-    time: '08:00',
-    type: 'VAGA REMANESCENTE',
-    patient: 'Aguardando aceite',
-    details: 'Clínica Geral - Expira em 12 min',
-    specialty: 'Clínica Geral',
-    professional: 'Dra. Juliana Castro',
-    status: 'available_vacancy',
-  },
-  {
-    id: 6,
-    date: '2023-10-27',
-    time: '14:00',
-    type: 'EXPIRADA',
-    patient: 'Sem aceite no prazo',
-    details: 'Dermatologia - Expirou há 8 min',
-    specialty: 'Dermatologia',
-    professional: 'Dra. Mariana Lopes',
-    status: 'expired',
-  },
-  {
-    id: 7,
-    date: '2023-10-24',
-    time: '16:00',
-    type: 'AGUARDANDO ACEITE',
-    patient: 'Vaga remanescente',
-    details: 'Pediatria - Expira em 10 min',
-    specialty: 'Pediatria',
-    professional: 'Dr. Carlos Mendes',
-    status: 'available_vacancy',
-  },
-  {
-    id: 8,
-    date: '2023-10-26',
-    time: '17:00',
-    type: 'CONFIRMADA PELA FILA',
-    patient: 'Lucas Ferreira',
-    details: 'Dermatologia - Dra. Juliana Castro',
-    specialty: 'Dermatologia',
-    professional: 'Dra. Juliana Castro',
-    status: 'confirmed_by_queue',
-  },
-];
+const weekdayLabels = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
+
+function capitalizeText(text) {
+  if (!text) {
+    return '';
+  }
+
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+function getCalendarDate(date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12);
+}
+
+function formatDateKey(date) {
+  const normalizedDate = getCalendarDate(date);
+
+  return [
+    normalizedDate.getFullYear(),
+    String(normalizedDate.getMonth() + 1).padStart(2, '0'),
+    String(normalizedDate.getDate()).padStart(2, '0'),
+  ].join('-');
+}
+
+function isSameDate(firstDate, secondDate) {
+  return formatDateKey(firstDate) === formatDateKey(secondDate);
+}
+
+function addDays(date, amount) {
+  const nextDate = getCalendarDate(date);
+  nextDate.setDate(nextDate.getDate() + amount);
+  return nextDate;
+}
+
+function addMonths(date, amount) {
+  const normalizedDate = getCalendarDate(date);
+  const targetMonth = new Date(
+    normalizedDate.getFullYear(),
+    normalizedDate.getMonth() + amount,
+    1,
+    12,
+  );
+  const lastDayOfMonth = new Date(
+    targetMonth.getFullYear(),
+    targetMonth.getMonth() + 1,
+    0,
+    12,
+  ).getDate();
+
+  targetMonth.setDate(Math.min(normalizedDate.getDate(), lastDayOfMonth));
+
+  return targetMonth;
+}
+
+function getStartOfWeek(date) {
+  const normalizedDate = getCalendarDate(date);
+  const dayOfWeek = normalizedDate.getDay();
+  const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+
+  return addDays(normalizedDate, diff);
+}
+
+function getMonthName(date) {
+  return capitalizeText(date.toLocaleDateString('pt-BR', { month: 'long' }));
+}
+
+function formatDayMonth(date) {
+  return `${date.getDate()} de ${getMonthName(date)}`;
+}
+
+function formatDayMonthYear(date) {
+  return `${formatDayMonth(date)}, ${date.getFullYear()}`;
+}
+
+function formatMonthPeriod(date) {
+  return `${getMonthName(date)}, ${date.getFullYear()}`;
+}
+
+function formatMonthTitle(date) {
+  return `${getMonthName(date)} ${date.getFullYear()}`;
+}
+
+function formatWeekPeriod(date) {
+  const startOfWeek = getStartOfWeek(date);
+  const endOfWeek = addDays(startOfWeek, 6);
+  const sameMonth = startOfWeek.getMonth() === endOfWeek.getMonth()
+    && startOfWeek.getFullYear() === endOfWeek.getFullYear();
+  const sameYear = startOfWeek.getFullYear() === endOfWeek.getFullYear();
+
+  if (sameMonth) {
+    return `${startOfWeek.getDate()} - ${endOfWeek.getDate()} de ${getMonthName(startOfWeek)}, ${startOfWeek.getFullYear()}`;
+  }
+
+  if (sameYear) {
+    return `${startOfWeek.getDate()} de ${getMonthName(startOfWeek)} - ${endOfWeek.getDate()} de ${getMonthName(endOfWeek)}, ${startOfWeek.getFullYear()}`;
+  }
+
+  return `${startOfWeek.getDate()} de ${getMonthName(startOfWeek)}, ${startOfWeek.getFullYear()} - ${endOfWeek.getDate()} de ${getMonthName(endOfWeek)}, ${endOfWeek.getFullYear()}`;
+}
+
+function getWeekDays(currentDate) {
+  const startOfWeek = getStartOfWeek(currentDate);
+
+  return Array.from({ length: 7 }, (_, index) => {
+    const date = addDays(startOfWeek, index);
+    const dayOfWeek = date.getDay();
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
+    return {
+      day: weekdayLabels[dayOfWeek],
+      number: String(date.getDate()),
+      date: formatDateKey(date),
+      active: isSameDate(date, currentDate),
+      disabled: isWeekend,
+    };
+  });
+}
+
+function getMonthDays(currentDate) {
+  const firstDayOfMonth = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth(),
+    1,
+    12,
+  );
+  const daysInMonth = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth() + 1,
+    0,
+    12,
+  ).getDate();
+  const leadingEmptyDays = firstDayOfMonth.getDay();
+  const totalCells = Math.ceil((leadingEmptyDays + daysInMonth) / 7) * 7;
+
+  return Array.from({ length: totalCells }, (_, index) => {
+    const dayNumber = index - leadingEmptyDays + 1;
+    const isCurrentMonth = dayNumber >= 1 && dayNumber <= daysInMonth;
+
+    if (!isCurrentMonth) {
+      return {
+        id: `month-empty-${currentDate.getFullYear()}-${currentDate.getMonth()}-${index}`,
+        number: '',
+        date: null,
+        muted: true,
+        active: false,
+      };
+    }
+
+    const date = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth(),
+      dayNumber,
+      12,
+    );
+
+    return {
+      id: formatDateKey(date),
+      number: String(dayNumber),
+      date: formatDateKey(date),
+      muted: false,
+      active: isSameDate(date, currentDate),
+    };
+  });
+}
+
+function buildOperationalEvents(referenceDate) {
+  const today = getCalendarDate(referenceDate);
+  const tomorrow = addDays(today, 1);
+  const inTwoDays = addDays(today, 2);
+  const inThreeDays = addDays(today, 3);
+  const startOfWeek = getStartOfWeek(today);
+  const monday = addDays(startOfWeek, 0);
+  const wednesday = addDays(startOfWeek, 2);
+
+  return [
+    {
+      id: 1,
+      date: formatDateKey(today),
+      time: '08:00',
+      type: 'OCUPADO',
+      patient: 'Beatriz Oliveira',
+      details: 'Cardiologia - Dra. Mariana Lopes',
+      specialty: 'Cardiologia',
+      professional: 'Dra. Mariana Lopes',
+      status: 'occupied',
+    },
+    {
+      id: 2,
+      date: formatDateKey(today),
+      time: '16:00',
+      type: 'AGUARDANDO ACEITE',
+      patient: 'Vaga remanescente',
+      details: 'Pediatria - Expira em 10 min',
+      specialty: 'Pediatria',
+      professional: 'Dr. Carlos Mendes',
+      status: 'available_vacancy',
+    },
+    {
+      id: 3,
+      date: formatDateKey(tomorrow),
+      time: '09:00',
+      type: 'CANCELADO',
+      patient: 'Atendimento cancelado',
+      details: 'Horário disponível para reaproveitamento',
+      specialty: 'Ortopedia',
+      professional: 'Dra. Juliana Castro',
+      status: 'cancelled',
+    },
+    {
+      id: 4,
+      date: formatDateKey(inTwoDays),
+      time: '17:00',
+      type: 'CONFIRMADA PELA FILA',
+      patient: 'Lucas Ferreira',
+      details: 'Dermatologia - Dra. Juliana Castro',
+      specialty: 'Dermatologia',
+      professional: 'Dra. Juliana Castro',
+      status: 'confirmed_by_queue',
+    },
+    {
+      id: 5,
+      date: formatDateKey(inThreeDays),
+      time: '14:00',
+      type: 'EXPIRADA',
+      patient: 'Sem aceite no prazo',
+      details: 'Clínica Geral - Expirou há 8 min',
+      specialty: 'Clínica Geral',
+      professional: 'Dra. Mariana Lopes',
+      status: 'expired',
+    },
+    {
+      id: 6,
+      date: formatDateKey(monday),
+      time: '10:00',
+      type: 'OCUPADO',
+      patient: 'Marcos Silva',
+      details: 'Ortopedia - Sala 02',
+      specialty: 'Ortopedia',
+      professional: 'Dr. Carlos Mendes',
+      status: 'occupied',
+    },
+    {
+      id: 7,
+      date: formatDateKey(wednesday),
+      time: '15:00',
+      type: 'CONFIRMADA PELA FILA',
+      patient: 'Ana Paula',
+      details: 'Cardiologia - Dr. Ricardo Almeida',
+      specialty: 'Cardiologia',
+      professional: 'Dr. Ricardo Almeida',
+      status: 'confirmed_by_queue',
+    },
+  ];
+}
 
 const statusPresentation = {
   occupied: {
@@ -190,28 +344,15 @@ const legendItems = [
   { label: 'Expirada', legendClass: 'legend-color--expired' },
 ];
 
-const monthDays = Array.from({ length: 35 }, (_, index) => {
-  const dayNumber = index;
-  const isCurrentMonth = dayNumber >= 1 && dayNumber <= 31;
-
-  return {
-    id: index,
-    number: isCurrentMonth ? dayNumber : '',
-    date: isCurrentMonth ? `2023-10-${String(dayNumber).padStart(2, '0')}` : null,
-    muted: !isCurrentMonth,
-    active: dayNumber === 24,
-  };
-});
-
 function getStatusPresentation(status) {
   return statusPresentation[status] || statusPresentation.occupied;
 }
 
-function getAppointment(date, time, appointments = operationalEvents) {
+function getAppointment(date, time, appointments = []) {
   return appointments.find((item) => item.date === date && item.time === time);
 }
 
-function getAppointmentsByDate(date, appointments = operationalEvents) {
+function getAppointmentsByDate(date, appointments = []) {
   return appointments.filter((item) => item.date === date);
 }
 
@@ -236,10 +377,10 @@ function formatAppointmentDate(dateString) {
   return formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
 }
 
-function countAvailableSlots(days) {
+function countAvailableSlots(days, appointments) {
   return days.reduce(
     (total, day) =>
-      total + timeSlots.filter((time) => !getAppointment(day.date, time)).length,
+      total + timeSlots.filter((time) => !getAppointment(day.date, time, appointments)).length,
     0,
   );
 }
@@ -424,12 +565,17 @@ function AppointmentDetailsModal({ appointment, onClose }) {
 
 export default function WeeklySchedule() {
   const navigate = useNavigate();
+  const [referenceDate] = useState(() => getCalendarDate(new Date()));
+  const [currentDate, setCurrentDate] = useState(() => getCalendarDate(new Date()));
   const [view, setView] = useState('week');
   const [specialtyFilter, setSpecialtyFilter] = useState('');
   const [professionalFilter, setProfessionalFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [selectedAppointment, setSelectedAppointment] = useState(null);
 
+  const operationalEvents = buildOperationalEvents(referenceDate);
+  const weekDays = getWeekDays(currentDate);
+  const monthDays = getMonthDays(currentDate);
   const selectedDay = weekDays.find((item) => item.active) || weekDays[0];
   const filteredAppointments = operationalEvents.filter((appointment) =>
     appointmentMatchesFilters(appointment, {
@@ -440,16 +586,30 @@ export default function WeeklySchedule() {
   );
   const selectedDayAppointments = getAppointmentsByDate(selectedDay.date, filteredAppointments);
   const visibleWeekDays = weekDays.filter((item) => !item.disabled);
+  const visibleMonthDates = new Set(
+    monthDays
+      .filter((item) => item.date)
+      .map((item) => item.date),
+  );
+  const visibleWeekDates = new Set(visibleWeekDays.map((item) => item.date));
+  const weekAppointments = filteredAppointments.filter((appointment) =>
+    visibleWeekDates.has(appointment.date),
+  );
+  const monthAppointments = filteredAppointments.filter((appointment) =>
+    visibleMonthDates.has(appointment.date),
+  );
   const isFreeSlotsOnlyView = statusFilter === 'free' && !specialtyFilter && !professionalFilter;
   const totalAppointments = isFreeSlotsOnlyView
     ? view === 'day'
-      ? countAvailableSlots([selectedDay])
+      ? countAvailableSlots([selectedDay], operationalEvents)
       : view === 'week'
-        ? countAvailableSlots(visibleWeekDays)
+        ? countAvailableSlots(visibleWeekDays, operationalEvents)
         : 0
     : view === 'day'
       ? selectedDayAppointments.length
-      : filteredAppointments.length;
+      : view === 'week'
+        ? weekAppointments.length
+        : monthAppointments.length;
   const totalLabel = isFreeSlotsOnlyView
     ? totalAppointments === 1
       ? 'horário livre'
@@ -463,10 +623,10 @@ export default function WeeklySchedule() {
 
   const periodLabel =
     view === 'month'
-      ? 'Outubro, 2023'
+      ? formatMonthPeriod(currentDate)
       : view === 'day'
-        ? '24 de Outubro, 2023'
-        : '23 - 29 de Outubro, 2023';
+        ? formatDayMonthYear(currentDate)
+        : formatWeekPeriod(currentDate);
 
   const handleCreateVacancy = (date, time) => {
     navigate('/vacancies/new', {
@@ -489,6 +649,22 @@ export default function WeeklySchedule() {
 
   const handleCloseDetails = () => {
     setSelectedAppointment(null);
+  };
+
+  const handlePreviousPeriod = () => {
+    setCurrentDate((previousDate) => (
+      view === 'day'
+        ? addDays(previousDate, -1)
+        : addMonths(previousDate, -1)
+    ));
+  };
+
+  const handleNextPeriod = () => {
+    setCurrentDate((previousDate) => (
+      view === 'day'
+        ? addDays(previousDate, 1)
+        : addMonths(previousDate, 1)
+    ));
   };
 
   useEffect(() => {
@@ -641,16 +817,26 @@ export default function WeeklySchedule() {
         {view === 'day' && (
           <div className="view-container-day">
             <div className="day-view-header">
-              <button type="button" className="nav-button" aria-label="Dia anterior">
+              <button
+                type="button"
+                className="nav-button"
+                aria-label="Dia anterior"
+                onClick={handlePreviousPeriod}
+              >
                 <LuChevronLeft size={20} />
               </button>
 
               <div>
-                <span>TERÇA-FEIRA</span>
-                <strong>24 de Outubro</strong>
+                <span>{currentDate.toLocaleDateString('pt-BR', { weekday: 'long' }).toUpperCase()}</span>
+                <strong>{formatDayMonth(currentDate)}</strong>
               </div>
 
-              <button type="button" className="nav-button" aria-label="Próximo dia">
+              <button
+                type="button"
+                className="nav-button"
+                aria-label="Próximo dia"
+                onClick={handleNextPeriod}
+              >
                 <LuChevronRight size={20} />
               </button>
             </div>
@@ -671,7 +857,7 @@ export default function WeeklySchedule() {
                 <div className="calendar-cell">
                   <ScheduleSlotContent
                     appointment={getAppointment(selectedDay.date, time, filteredAppointments)}
-                    hasAppointment={Boolean(getAppointment(selectedDay.date, time))}
+                    hasAppointment={Boolean(getAppointment(selectedDay.date, time, operationalEvents))}
                     showEmptySlot={canShowEmptySlots}
                     date={selectedDay.date}
                     time={time}
@@ -722,7 +908,7 @@ export default function WeeklySchedule() {
                         {!day.disabled ? (
                           <ScheduleSlotContent
                             appointment={getAppointment(day.date, time, filteredAppointments)}
-                            hasAppointment={Boolean(getAppointment(day.date, time))}
+                            hasAppointment={Boolean(getAppointment(day.date, time, operationalEvents))}
                             showEmptySlot={canShowEmptySlots}
                             date={day.date}
                             time={time}
@@ -742,13 +928,23 @@ export default function WeeklySchedule() {
         {view === 'month' && (
           <div className="view-container-month">
             <div className="month-view-header">
-              <button type="button" className="nav-button" aria-label="Mês anterior">
+              <button
+                type="button"
+                className="nav-button"
+                aria-label="Mês anterior"
+                onClick={handlePreviousPeriod}
+              >
                 <LuChevronLeft size={20} />
               </button>
 
-              <strong>Outubro 2023</strong>
+              <strong>{formatMonthTitle(currentDate)}</strong>
 
-              <button type="button" className="nav-button" aria-label="Próximo mês">
+              <button
+                type="button"
+                className="nav-button"
+                aria-label="Próximo mês"
+                onClick={handleNextPeriod}
+              >
                 <LuChevronRight size={20} />
               </button>
             </div>
