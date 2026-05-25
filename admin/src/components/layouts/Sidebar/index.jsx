@@ -12,11 +12,14 @@ import {
 import { FaUserDoctor } from 'react-icons/fa6';
 import './styles.css';
 
-export default function Sidebar() {
-
-  
+export default function Sidebar({ isHidden = false }) {
   return (
-    <aside className="sidebar">
+    <aside
+      id="app-sidebar"
+      className={`sidebar${isHidden ? ' sidebar--hidden' : ''}`}
+      aria-hidden={isHidden}
+      aria-label="Menu principal"
+    >
       <div className="sidebar__top">
         <div className="sidebar__logo">
           <Logo />
