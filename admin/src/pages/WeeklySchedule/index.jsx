@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   LuCalendarDays,
-  LuFilter,
+  LuSlidersHorizontal,
   LuChevronDown,
   LuClock,
   LuCirclePlus,
@@ -376,93 +376,82 @@ export default function WeeklySchedule() {
       </section>
 
       <section className="weekly-schedule-top">
-        <aside className="quick-filters-card">
-          <div className="quick-filters-card__title">
-            <LuFilter size={20} />
-            <h2>Filtros Rápidos</h2>
-          </div>
-
-          <label>
-            ESPECIALIDADE
-            <div className="quick-filter-select">
-              <select
-                value={specialtyFilter}
-                onChange={(event) => setSpecialtyFilter(event.target.value)}
-                aria-label="Filtrar por especialidade"
-              >
-                <option value="">Todas as especialidades</option>
-                {specialtyOptions.map((specialty) => (
-                  <option key={specialty} value={specialty}>
-                    {specialty}
-                  </option>
-                ))}
-              </select>
-              <LuChevronDown size={16} />
-            </div>
-          </label>
-
-          <label>
-            MÉDICO RESPONSÁVEL
-            <div className="quick-filter-select">
-              <select
-                value={professionalFilter}
-                onChange={(event) => setProfessionalFilter(event.target.value)}
-                aria-label="Filtrar por médico responsável"
-              >
-                <option value="">Qualquer médico</option>
-                {professionalOptions.map((professional) => (
-                  <option key={professional} value={professional}>
-                    {professional}
-                  </option>
-                ))}
-              </select>
-
-              <LuChevronDown size={16} />
-            </div>
-          </label>
-
-          <label>
-            STATUS DA VAGA
-            <div className="quick-filter-select">
-              <select
-                value={statusFilter}
-                onChange={(event) => setStatusFilter(event.target.value)}
-                aria-label="Filtrar por status da vaga"
-              >
-                {statusFilterOptions.map((option) => (
-                  <option key={option.value || 'all-status'} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-              <LuChevronDown size={16} />
-            </div>
-          </label>
-
-          <div className="quick-filters-actions">
-            <button
-              type="button"
-              className="quick-filters-clear-button"
-              onClick={handleClearFilters}
-              disabled={!hasActiveFilters}
+        <div className="weekly-schedule-filters" aria-label="Filtros da agenda operacional">
+          <label className="weekly-schedule-filter">
+            <LuSlidersHorizontal size={16} />
+            <select
+              value={specialtyFilter}
+              onChange={(event) => setSpecialtyFilter(event.target.value)}
+              aria-label="Filtrar por especialidade"
             >
-              <LuRefreshCw size={16} />
-              Limpar filtros
-            </button>
-          </div>
-
-          <div className="schedule-legend">
-            <h3>LEGENDA</h3>
-            <div className="schedule-legend__grid">
-              {legendItems.map((item) => (
-                <span key={item.label}>
-                  <small className={`legend-color ${item.legendClass}`} />
-                  {item.label}
-                </span>
+              <option value="">Especialidade</option>
+              {specialtyOptions.map((specialty) => (
+                <option key={specialty} value={specialty}>
+                  {specialty}
+                </option>
               ))}
-            </div>
+            </select>
+            <LuChevronDown size={16} className="weekly-schedule-filter__chevron" />
+          </label>
+
+          <label className="weekly-schedule-filter">
+            <LuSlidersHorizontal size={16} />
+            <select
+              value={professionalFilter}
+              onChange={(event) => setProfessionalFilter(event.target.value)}
+              aria-label="Filtrar por médico responsável"
+            >
+              <option value="">Médico responsável</option>
+              {professionalOptions.map((professional) => (
+                <option key={professional} value={professional}>
+                  {professional}
+                </option>
+              ))}
+            </select>
+            <LuChevronDown size={16} className="weekly-schedule-filter__chevron" />
+          </label>
+
+          <label className="weekly-schedule-filter">
+            <LuSlidersHorizontal size={16} />
+            <select
+              value={statusFilter}
+              onChange={(event) => setStatusFilter(event.target.value)}
+              aria-label="Filtrar por status da vaga"
+            >
+              {statusFilterOptions.map((option, index) => (
+                <option
+                  key={option.value || 'all-status'}
+                  value={option.value}
+                >
+                  {index === 0 ? 'Status da vaga' : option.label}
+                </option>
+              ))}
+            </select>
+            <LuChevronDown size={16} className="weekly-schedule-filter__chevron" />
+          </label>
+
+          <button
+            type="button"
+            className="weekly-schedule-filter-clear-button"
+            onClick={handleClearFilters}
+            disabled={!hasActiveFilters}
+          >
+            <LuRefreshCw size={16} />
+            Limpar filtros
+          </button>
+        </div>
+
+        <div className="schedule-legend">
+          <span className="schedule-legend__label">Legenda</span>
+          <div className="schedule-legend__grid">
+            {legendItems.map((item) => (
+              <span key={item.label}>
+                <small className={`legend-color ${item.legendClass}`} />
+                {item.label}
+              </span>
+            ))}
           </div>
-        </aside>
+        </div>
       </section>
 
       <section className="weekly-calendar-card">
