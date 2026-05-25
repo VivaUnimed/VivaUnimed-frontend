@@ -372,12 +372,7 @@
 
 .generated-slots-table th:nth-child(8),
 .generated-slots-table td:nth-child(8) {
-  width: 150px;
-}
-
-.generated-slots-table th:nth-child(9),
-.generated-slots-table td:nth-child(9) {
-  width: 150px;
+  width: 210px;
 }
 
 .generated-slots-table tbody tr {
@@ -557,48 +552,45 @@
 /* Botões de ação */
 
 .slot-action {
-  min-width: 82px;
-  height: 34px;
-  padding: 0 12px;
-  border: none;
-  border-radius: 6px;
-  background-color: #e8e6e4;
+  min-width: 150px;
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background-color: #f5f3f1;
   color: #4b5563;
   font-size: 11px;
   font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
   white-space: nowrap;
 }
 
-.slot-action svg {
-  stroke: #007a49;
+.slot-action:disabled {
+  opacity: 1;
 }
 
 .slot-action--primary {
-  min-width: 126px;
-  height: 42px;
-  border-radius: 8px;
   background-color: #007a49;
+  border-color: #007a49;
   color: #ffffff;
-  line-height: 14px;
+  box-shadow: 0 8px 18px rgba(0, 122, 73, 0.12);
+}
+
+.slot-action--secondary {
+  background-color: #ffffff;
+  border-color: #d8ebe1;
+  color: #007a49;
 }
 
 .slot-action--disabled {
-  color: #b7b7b7;
+  background-color: #ece7e3;
+  border-color: #ece7e3;
+  color: #9ca3af;
   cursor: not-allowed;
-}
-
-.slot-action--retry {
-  width: 38px;
-  min-width: 38px;
-  height: 38px;
-  padding: 0;
-  border-radius: 50%;
-  background-color: transparent;
-  color: #007a49;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  box-shadow: none;
 }
 
 /* Mantém oculto o antigo botão flutuante */

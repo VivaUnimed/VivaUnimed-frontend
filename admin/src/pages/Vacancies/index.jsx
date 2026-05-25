@@ -8,7 +8,6 @@ import {
   LuHistory,
   LuRefreshCw,
   LuPlus,
-  LuMoveRight,
   LuClock3,
   LuUsers,
   LuCircleCheck,
@@ -68,7 +67,6 @@ const vacancyStatusOptions = [
   { value: '', label: 'Todos os status da vaga' },
   { value: 'open', label: 'Aberta' },
   { value: 'waiting-acceptance', label: 'Aguardando aceite' },
-  { value: 'in-progress', label: 'Em processamento' },
   { value: 'confirmed', label: 'Confirmada' },
   { value: 'expired', label: 'Expirada' },
   { value: 'cancelled', label: 'Cancelada' },
@@ -77,8 +75,6 @@ const vacancyStatusOptions = [
 const dispatchStatusOptions = [
   { value: '', label: 'Todos os status do disparo' },
   { value: 'success', label: 'Enviado com sucesso' },
-  { value: 'sending', label: 'Enviando' },
-  { value: 'waiting', label: 'Aguardando disparo' },
   { value: 'error', label: 'Falha no disparo' },
 ];
 
@@ -96,42 +92,25 @@ const generatedSlots = [
     dispatchStatusText: 'Enviado com sucesso',
     expiration: 'Expira em 08 min',
     confirmedPatient: null,
-    action: 'Gerenciar',
   },
   {
     id: 2,
     time: '15:15',
     date: 'Hoje, 24 Out',
-    specialty: 'Ortopedia',
-    professional: 'Dra. Heloísa Santos',
-    queuePatients: 24,
-    vacancyStatus: 'in-progress',
-    vacancyStatusText: 'Em processamento',
-    dispatchStatus: 'sending',
-    dispatchStatusText: 'Enviando...',
-    expiration: 'Aguardando envio',
+    specialty: 'Pediatria',
+    professional: 'Dr. Fábio Mello',
+    queuePatients: 9,
+    vacancyStatus: 'waiting-acceptance',
+    vacancyStatusText: 'Aguardando aceite',
+    dispatchStatus: 'error',
+    dispatchStatusText: 'Falha no disparo',
+    expiration: 'Falha antes do aceite',
     confirmedPatient: null,
-    action: 'Aguarde',
   },
   {
     id: 3,
     time: '16:45',
     date: 'Hoje, 24 Out',
-    specialty: 'Pediatria',
-    professional: 'Dr. Fábio Mello',
-    queuePatients: 9,
-    vacancyStatus: 'open',
-    vacancyStatusText: 'Aberta',
-    dispatchStatus: 'waiting',
-    dispatchStatusText: 'Aguardando disparo',
-    expiration: '15 min após envio',
-    confirmedPatient: null,
-    action: 'Processar fila',
-  },
-  {
-    id: 4,
-    time: '09:00',
-    date: 'Amanhã, 25 Out',
     specialty: 'Dermatologia',
     professional: 'Dra. Cláudia Lima',
     queuePatients: 0,
@@ -139,13 +118,26 @@ const generatedSlots = [
     vacancyStatusText: 'Aberta',
     dispatchStatus: 'error',
     dispatchStatusText: 'Falha no disparo',
-    expiration: 'Não iniciado',
+    expiration: 'Falha antes do aceite',
     confirmedPatient: null,
-    action: 'retry',
+  },
+  {
+    id: 4,
+    time: '09:00',
+    date: 'Amanhã, 25 Out',
+    specialty: 'Endocrinologia',
+    professional: 'Dr. Rafael Tavares',
+    queuePatients: 6,
+    vacancyStatus: 'open',
+    vacancyStatusText: 'Aberta',
+    dispatchStatus: 'error',
+    dispatchStatusText: 'Falha no disparo',
+    expiration: 'Falha antes do aceite',
+    confirmedPatient: null,
   },
   {
     id: 5,
-    time: '10:30',
+    time: '11:20',
     date: 'Amanhã, 25 Out',
     specialty: 'Ginecologia',
     professional: 'Dra. Marina Costa',
@@ -156,12 +148,79 @@ const generatedSlots = [
     dispatchStatusText: 'Enviado com sucesso',
     expiration: 'Finalizada',
     confirmedPatient: 'Ana Souza',
-    action: 'Ver confirmação',
+  },
+  {
+    id: 6,
+    time: '13:10',
+    date: 'Amanhã, 25 Out',
+    specialty: 'Neurologia',
+    professional: 'Dra. Isabela Moura',
+    queuePatients: 14,
+    vacancyStatus: 'expired',
+    vacancyStatusText: 'Expirada',
+    dispatchStatus: 'success',
+    dispatchStatusText: 'Enviado com sucesso',
+    expiration: 'Expirou há 12 min',
+    confirmedPatient: null,
+  },
+  {
+    id: 7,
+    time: '15:40',
+    date: 'Amanhã, 25 Out',
+    specialty: 'Otorrinolaringologia',
+    professional: 'Dr. Gustavo Nunes',
+    queuePatients: 4,
+    vacancyStatus: 'cancelled',
+    vacancyStatusText: 'Cancelada',
+    dispatchStatus: 'success',
+    dispatchStatusText: 'Enviado com sucesso',
+    expiration: 'Cancelada pela unidade',
+    confirmedPatient: null,
   },
 ];
 
 function formatSummaryValue(value) {
   return String(value).padStart(2, '0');
+}
+
+function getSlotAction(slot) {
+  if (slot.vacancyStatus === 'confirmed') {
+    return {
+      label: 'Ver confirmação',
+      variant: 'secondary',
+    };
+  }
+
+  if (slot.vacancyStatus === 'expired' || slot.vacancyStatus === 'cancelled') {
+    return {
+      label: 'Detalhes',
+      variant: 'secondary',
+    };
+  }
+
+  if (slot.dispatchStatus === 'error') {
+    return slot.queuePatients > 0
+      ? {
+          label: 'Tentar novamente',
+          variant: 'primary',
+        }
+      : {
+          label: 'Ver fila',
+          variant: 'secondary',
+        };
+  }
+
+  if (slot.vacancyStatus === 'waiting-acceptance' && slot.dispatchStatus === 'success') {
+    return {
+      label: 'Gerenciar',
+      variant: 'primary',
+    };
+  }
+
+  return {
+    label: 'Detalhes',
+    variant: 'secondary',
+  };
 }
 
 export default function Vacancies() {
@@ -332,10 +391,6 @@ export default function Vacancies() {
                 <h2>Vagas Remanescentes</h2>
               </div>
 
-              <button type="button">
-                Ver histórico completo
-                <LuMoveRight size={15} />
-              </button>
             </div>
 
             <div className="generated-slots-table-wrapper">
@@ -355,87 +410,73 @@ export default function Vacancies() {
 
                 <tbody>
                   {filteredSlots.length > 0 ? (
-                    filteredSlots.map((slot) => (
-                      <tr key={slot.id}>
-                        <td>
-                          <strong>{slot.time}</strong>
-                          <span>{slot.date}</span>
-                        </td>
+                    filteredSlots.map((slot) => {
+                      const action = getSlotAction(slot);
 
-                        <td>
-                          <strong>{slot.specialty}</strong>
-                          <span>{slot.professional}</span>
-                        </td>
+                      return (
+                        <tr key={slot.id}>
+                          <td>
+                            <strong>{slot.time}</strong>
+                            <span>{slot.date}</span>
+                          </td>
 
-                        <td>
-                          <div className="queue-patients">
-                            <LuUsers size={15} />
-                            <strong>{slot.queuePatients}</strong>
-                            <span>pacientes</span>
-                          </div>
-                        </td>
+                          <td>
+                            <strong>{slot.specialty}</strong>
+                            <span>{slot.professional}</span>
+                          </td>
 
-                        <td>
-                          <span
-                            className={`slot-status slot-status--${slot.vacancyStatus}`}
-                          >
-                            {slot.vacancyStatusText}
-                          </span>
-                        </td>
+                          <td>
+                            <div className="queue-patients">
+                              <LuUsers size={15} />
+                              <strong>{slot.queuePatients}</strong>
+                              <span>pacientes</span>
+                            </div>
+                          </td>
 
-                        <td>
-                          <span
-                            className={`slot-status slot-status--${slot.dispatchStatus}`}
-                          >
-                            {slot.dispatchStatusText}
-                          </span>
-                        </td>
+                          <td>
+                            <span
+                              className={`slot-status slot-status--${slot.vacancyStatus}`}
+                            >
+                              {slot.vacancyStatusText}
+                            </span>
+                          </td>
 
-                        <td>
-                          <span className="slot-expiration">
-                            {slot.expiration}
-                          </span>
-                        </td>
+                          <td>
+                            <span
+                              className={`slot-status slot-status--${slot.dispatchStatus}`}
+                            >
+                              {slot.dispatchStatusText}
+                            </span>
+                          </td>
 
-                        <td>
-                          {slot.confirmedPatient ? (
-                            <strong className="confirmed-patient">
-                              {slot.confirmedPatient}
-                            </strong>
-                          ) : (
-                            <span className="empty-patient">—</span>
-                          )}
-                        </td>
+                          <td>
+                            <span className="slot-expiration">
+                              {slot.expiration}
+                            </span>
+                          </td>
 
-                        <td>
-                          {slot.action === 'retry' ? (
+                          <td>
+                            {slot.confirmedPatient ? (
+                              <strong className="confirmed-patient">
+                                {slot.confirmedPatient}
+                              </strong>
+                            ) : (
+                              <span className="empty-patient">—</span>
+                            )}
+                          </td>
+
+                          <td>
                             <button
                               type="button"
-                              className="slot-action slot-action--retry"
-                              title="Tentar novamente"
+                              className={`slot-action slot-action--${action.variant}`}
+                              disabled={Boolean(action.disabled)}
                             >
-                              <LuRefreshCw size={22} />
+                              {action.label}
                             </button>
-                          ) : (
-                            <button
-                              type="button"
-                              className={`slot-action ${
-                                slot.action === 'Processar fila'
-                                  ? 'slot-action--primary'
-                                  : ''
-                              } ${
-                                slot.action === 'Aguarde'
-                                  ? 'slot-action--disabled'
-                                  : ''
-                              }`}
-                              disabled={slot.action === 'Aguarde'}
-                            >
-                              {slot.action}
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    ))
+                          </td>
+                        </tr>
+                      );
+                    })
                   ) : (
                     <tr className="generated-slots-empty-row">
                       <td colSpan="8">
