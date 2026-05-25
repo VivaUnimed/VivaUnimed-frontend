@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   LuCalendarDays,
   LuChevronLeft,
@@ -38,9 +38,12 @@ const expirationOptions = [
 ];
 
 export default function NoShowRegistration() {
+  const location = useLocation();
   const navigate = useNavigate();
   const vacancyDateInputRef = useRef(null);
   const vacancyTimeInputRef = useRef(null);
+  const prefilledDate = typeof location.state?.date === 'string' ? location.state.date : '';
+  const prefilledTime = typeof location.state?.time === 'string' ? location.state.time : '';
 
   const openNativePicker = (input) => {
     if (!input) {
@@ -141,7 +144,7 @@ export default function NoShowRegistration() {
               className="no-show-registration-input no-show-registration-input--picker"
               onClick={() => openNativePicker(vacancyDateInputRef.current)}
             >
-              <input ref={vacancyDateInputRef} type="date" />
+              <input ref={vacancyDateInputRef} type="date" defaultValue={prefilledDate} />
               <LuCalendarDays
                 size={18}
                 className="no-show-registration-input__icon"
@@ -155,7 +158,7 @@ export default function NoShowRegistration() {
               className="no-show-registration-input no-show-registration-input--picker"
               onClick={() => openNativePicker(vacancyTimeInputRef.current)}
             >
-              <input ref={vacancyTimeInputRef} type="time" />
+              <input ref={vacancyTimeInputRef} type="time" defaultValue={prefilledTime} />
               <LuClock3
                 size={18}
                 className="no-show-registration-input__icon"

@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   LuCalendarDays,
   LuFilter,
   LuChevronDown,
   LuClock,
   LuCirclePlus,
-  LuCircleX,
   LuChevronLeft,
   LuChevronRight,
   LuUsers,
@@ -24,33 +24,57 @@ const weekDays = [
 
 const timeSlots = ['08:00', '09:00', '10:00', '11:00', '14:00', '15:00'];
 
-const appointments = [
+const specialtyOptions = [
+  'Cardiologia',
+  'Ortopedia',
+  'Clínica Geral',
+  'Dermatologia',
+];
+
+const professionalOptions = [
+  'Dr. Ricardo Almeida',
+  'Dra. Mariana Lopes',
+  'Dr. Carlos Mendes',
+  'Dra. Juliana Castro',
+];
+
+const statusFilterOptions = [
+  { value: '', label: 'Todos os status' },
+  { value: 'occupied', label: 'Ocupado' },
+  { value: 'free', label: 'Livre' },
+  { value: 'cancelled', label: 'Cancelado' },
+  { value: 'available_vacancy', label: 'Vaga remanescente' },
+  { value: 'confirmed_by_queue', label: 'Confirmada pela fila' },
+  { value: 'expired', label: 'Expirada' },
+];
+
+const operationalEvents = [
   {
     id: 1,
     date: '2023-10-23',
     time: '08:00',
-    type: 'CONSULTA',
+    type: 'OCUPADO',
     patient: 'Beatriz Oliveira',
-    details: 'Cardiologia - Sala 04',
-    status: 'busy',
+    details: 'Cardiologia - Dra. Mariana Lopes',
+    status: 'occupied',
   },
   {
     id: 2,
     date: '2023-10-24',
     time: '08:00',
-    type: 'CONSULTA PRESENCIAL',
+    type: 'OCUPADO',
     patient: 'Marcos Silva',
     details: 'Ortopedia - Sala 02',
-    status: 'busy',
+    status: 'occupied',
   },
   {
     id: 3,
     date: '2023-10-24',
     time: '10:00',
-    type: 'RETORNO',
+    type: 'CONFIRMADA PELA FILA',
     patient: 'Ana Paula',
-    details: 'Cardiologia - Sala 04',
-    status: 'busy',
+    details: 'Cardiologia - Dr. Ricardo Almeida',
+    status: 'confirmed_by_queue',
   },
   {
     id: 4,
@@ -58,31 +82,68 @@ const appointments = [
     time: '09:00',
     type: 'CANCELADO',
     patient: 'Atendimento cancelado',
-    details: '',
-    status: 'canceled',
+    details: 'Horário disponível para reaproveitamento',
+    status: 'cancelled',
   },
   {
     id: 5,
     date: '2023-10-26',
     time: '08:00',
-    type: 'CHECK-UP',
-    patient: 'Carlos Mendes',
-    details: 'Clínica Geral - Sala 01',
-    status: 'busy',
+    type: 'VAGA REMANESCENTE',
+    patient: 'Aguardando aceite',
+    details: 'Clínica Geral - Expira em 12 min',
+    status: 'available_vacancy',
   },
   {
     id: 6,
     date: '2023-10-27',
     time: '14:00',
-    type: 'EMERGÊNCIA',
-    patient: 'Juliana Castro',
-    details: 'Pronto atendimento',
-    status: 'emergency',
+    type: 'EXPIRADA',
+    patient: 'Sem aceite no prazo',
+    details: 'Dermatologia - Expirou há 8 min',
+    status: 'expired',
   },
 ];
 
+const statusPresentation = {
+  occupied: {
+    label: 'Ocupado',
+    modifier: 'occupied',
+  },
+  cancelled: {
+    label: 'Cancelado',
+    modifier: 'cancelled',
+  },
+  available_vacancy: {
+    label: 'Vaga remanescente',
+    modifier: 'available-vacancy',
+    badge: 'Disponível',
+    badgeVariant: 'highlight',
+  },
+  confirmed_by_queue: {
+    label: 'Confirmada pela fila',
+    modifier: 'confirmed',
+    badge: 'Fila confirmou',
+    badgeVariant: 'success',
+    badgeIcon: LuUsers,
+  },
+  expired: {
+    label: 'Expirada',
+    modifier: 'expired',
+  },
+};
+
+const legendItems = [
+  { label: 'Ocupado', legendClass: 'legend-color--occupied' },
+  { label: 'Livre', legendClass: 'legend-color--free' },
+  { label: 'Cancelado', legendClass: 'legend-color--cancelled' },
+  { label: 'Vaga remanescente', legendClass: 'legend-color--available-vacancy' },
+  { label: 'Confirmada pela fila', legendClass: 'legend-color--confirmed' },
+  { label: 'Expirada', legendClass: 'legend-color--expired' },
+];
+
 const monthDays = Array.from({ length: 35 }, (_, index) => {
-  const dayNumber = index - 0;
+  const dayNumber = index;
   const isCurrentMonth = dayNumber >= 1 && dayNumber <= 31;
 
   return {
@@ -94,59 +155,88 @@ const monthDays = Array.from({ length: 35 }, (_, index) => {
   };
 });
 
+function getStatusPresentation(status) {
+  return statusPresentation[status] || statusPresentation.occupied;
+}
+
 function getAppointment(date, time) {
-  return appointments.find((item) => item.date === date && item.time === time);
+  return operationalEvents.find((item) => item.date === date && item.time === time);
 }
 
 function getAppointmentsByDate(date) {
-  return appointments.filter((item) => item.date === date);
+  return operationalEvents.filter((item) => item.date === date);
 }
 
-function AppointmentCard({ appointment }) {
+function AppointmentCard({ appointment, date, time, onEmptySlotClick }) {
   if (!appointment) {
     return (
-      <button type="button" className="empty-slot" aria-label="Adicionar horário">
+      <button
+        type="button"
+        className="empty-slot"
+        aria-label={`Adicionar vaga remanescente em ${date} às ${time}`}
+        onClick={() => onEmptySlotClick(date, time)}
+      >
         <LuCirclePlus size={24} />
       </button>
     );
   }
 
-  if (appointment.status === 'canceled') {
-    return (
-      <div className="schedule-event schedule-event--canceled">
-        <LuCircleX size={18} />
-        <strong>CANCELADO</strong>
-      </div>
-    );
-  }
+  const presentation = getStatusPresentation(appointment.status);
+  const BadgeIcon = presentation.badgeIcon;
 
   return (
-    <div
-      className={`schedule-event schedule-event--filled ${
-        appointment.status === 'emergency' ? 'schedule-event--emergency' : 'schedule-event--green'
-      }`}
-    >
-      <span>{appointment.type}</span>
-      <strong>{appointment.patient}</strong>
-      <small>{appointment.details}</small>
+    <div className={`schedule-event schedule-event--filled schedule-event--${presentation.modifier}`}>
+      <div className="schedule-event__header">
+        <span className="schedule-event__type">{appointment.type}</span>
+
+        {presentation.badge ? (
+          <span className={`schedule-event__badge schedule-event__badge--${presentation.badgeVariant}`}>
+            {BadgeIcon ? <BadgeIcon size={12} /> : null}
+            {presentation.badge}
+          </span>
+        ) : null}
+      </div>
+
+      <strong className="schedule-event__title">{appointment.patient}</strong>
+      <small className="schedule-event__details">{appointment.details}</small>
     </div>
   );
 }
 
 export default function WeeklySchedule() {
+  const navigate = useNavigate();
   const [view, setView] = useState('week');
 
   const selectedDay = weekDays.find((item) => item.active);
   const selectedDayAppointments = getAppointmentsByDate(selectedDay.date);
 
-  const totalAppointments = view === 'day' ? selectedDayAppointments.length : appointments.length;
-  const periodLabel = view === 'month' ? 'Outubro, 2023' : view === 'day' ? '24 de Outubro, 2023' : '23 - 29 de Outubro, 2023';
+  const totalAppointments = view === 'day' ? selectedDayAppointments.length : operationalEvents.length;
+  const totalLabel = totalAppointments === 1 ? 'registro operacional' : 'registros operacionais';
+  const periodLabel =
+    view === 'month'
+      ? 'Outubro, 2023'
+      : view === 'day'
+        ? '24 de Outubro, 2023'
+        : '23 - 29 de Outubro, 2023';
+
+  const handleCreateVacancy = (date, time) => {
+    navigate('/vacancies/new', {
+      state: {
+        date,
+        time,
+      },
+    });
+  };
 
   return (
     <main className="weekly-schedule-page">
       <section className="weekly-schedule-header">
         <div>
-          <h1>Agenda de Atendimentos</h1>
+          <h1>Agenda Operacional</h1>
+          <p className="weekly-schedule-header__subtitle">
+            Visualize horários ocupados, livres, cancelados e vagas remanescentes
+            disponíveis para reaproveitamento.
+          </p>
 
           <div className="weekly-schedule-header__info">
             <span>
@@ -154,7 +244,9 @@ export default function WeeklySchedule() {
               {periodLabel}
             </span>
 
-            <p>Visualizando: {totalAppointments} atendimentos</p>
+            <p>
+              Visualizando: {totalAppointments} {totalLabel}
+            </p>
           </div>
         </div>
 
@@ -194,9 +286,12 @@ export default function WeeklySchedule() {
             ESPECIALIDADE
             <div className="quick-filter-select">
               <select defaultValue="">
-                <option value="">Todas as Especialidades</option>
-                <option value="cardiologia">Cardiologia</option>
-                <option value="ortopedia">Ortopedia</option>
+                <option value="">Todas as especialidades</option>
+                {specialtyOptions.map((specialty) => (
+                  <option key={specialty} value={specialty.toLowerCase()}>
+                    {specialty}
+                  </option>
+                ))}
               </select>
               <LuChevronDown size={16} />
             </div>
@@ -206,13 +301,28 @@ export default function WeeklySchedule() {
             MÉDICO RESPONSÁVEL
             <div className="quick-filter-select">
               <select defaultValue="">
-                <option value="">Qualquer Médico</option>
-                <option value="ricardo-silva">Dr. Ricardo Silva</option>
-                <option value="ana-clara">Dra. Ana Clara</option>
-                <option value="marcos-silva">Dr. Marcos Silva</option>
-                <option value="beatriz-oliveira">Dra. Beatriz Oliveira</option>
+                <option value="">Qualquer médico</option>
+                {professionalOptions.map((professional) => (
+                  <option key={professional} value={professional.toLowerCase()}>
+                    {professional}
+                  </option>
+                ))}
               </select>
 
+              <LuChevronDown size={16} />
+            </div>
+          </label>
+
+          <label>
+            STATUS DA VAGA
+            <div className="quick-filter-select">
+              <select defaultValue="">
+                {statusFilterOptions.map((option) => (
+                  <option key={option.label} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
               <LuChevronDown size={16} />
             </div>
           </label>
@@ -220,10 +330,12 @@ export default function WeeklySchedule() {
           <div className="schedule-legend">
             <h3>LEGENDA</h3>
             <div className="schedule-legend__grid">
-              <span><small className="legend-color legend-color--busy" /> Ocupado</span>
-              <span><small className="legend-color legend-color--free" /> Livre</span>
-              <span><small className="legend-color legend-color--canceled" /> Cancelado</span>
-              <span><small className="legend-color legend-color--emergency" /> Emergência</span>
+              {legendItems.map((item) => (
+                <span key={item.label}>
+                  <small className={`legend-color ${item.legendClass}`} />
+                  {item.label}
+                </span>
+              ))}
             </div>
           </div>
         </aside>
@@ -261,7 +373,12 @@ export default function WeeklySchedule() {
               <div key={time} className="weekly-calendar-grid weekly-calendar-grid--day calendar-row">
                 <div className="calendar-time">{time}</div>
                 <div className="calendar-cell">
-                  <AppointmentCard appointment={getAppointment(selectedDay.date, time)} />
+                  <AppointmentCard
+                    appointment={getAppointment(selectedDay.date, time)}
+                    date={selectedDay.date}
+                    time={time}
+                    onEmptySlotClick={handleCreateVacancy}
+                  />
                 </div>
               </div>
             ))}
@@ -297,7 +414,14 @@ export default function WeeklySchedule() {
                     key={`${day.date}-${time}`}
                     className={`calendar-cell ${day.disabled ? 'calendar-cell--disabled' : ''}`}
                   >
-                    {!day.disabled && <AppointmentCard appointment={getAppointment(day.date, time)} />}
+                    {!day.disabled ? (
+                      <AppointmentCard
+                        appointment={getAppointment(day.date, time)}
+                        date={day.date}
+                        time={time}
+                        onEmptySlotClick={handleCreateVacancy}
+                      />
+                    ) : null}
                   </div>
                 ))}
               </div>
@@ -339,17 +463,21 @@ export default function WeeklySchedule() {
                     <span className="month-day-number">{day.number}</span>
 
                     <div className="month-events-list">
-                      {dayAppointments.slice(0, 2).map((appointment) => (
-                        <span
-                          key={appointment.id}
-                          className={`month-event-pill month-event-pill--${appointment.status}`}
-                        >
-                          {appointment.time} {appointment.patient}
-                        </span>
-                      ))}
+                      {dayAppointments.slice(0, 2).map((appointment) => {
+                        const presentation = getStatusPresentation(appointment.status);
+
+                        return (
+                          <span
+                            key={appointment.id}
+                            className={`month-event-pill month-event-pill--${presentation.modifier}`}
+                          >
+                            {appointment.time} {appointment.type}
+                          </span>
+                        );
+                      })}
 
                       {dayAppointments.length > 2 && (
-                        <small>+{dayAppointments.length - 2} atendimento(s)</small>
+                        <small>+{dayAppointments.length - 2} registro(s)</small>
                       )}
                     </div>
                   </button>
@@ -360,7 +488,12 @@ export default function WeeklySchedule() {
         )}
       </section>
 
-      <button type="button" className="schedule-floating-button" aria-label="Adicionar atendimento">
+      <button
+        type="button"
+        className="schedule-floating-button"
+        aria-label="Adicionar vaga remanescente"
+        onClick={() => navigate('/vacancies/new')}
+      >
         <LuCirclePlus size={28} />
       </button>
     </main>
