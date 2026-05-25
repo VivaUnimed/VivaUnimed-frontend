@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   LuCalendarDays,
@@ -10,6 +10,7 @@ import {
   LuChevronRight,
   LuUsers,
   LuRefreshCw,
+  LuX,
 } from 'react-icons/lu';
 import { normalizeText } from '../../data/professionals';
 import './styles.css';
@@ -181,6 +182,27 @@ function getAppointmentsByDate(date, appointments = operationalEvents) {
   return appointments.filter((item) => item.date === date);
 }
 
+function formatAppointmentDate(dateString) {
+  if (!dateString || !dateString.trim()) {
+    return 'Data não informada';
+  }
+
+  const [year, month, day] = dateString.split('-').map(Number);
+
+  if (!year || !month || !day) {
+    return 'Data não informada';
+  }
+
+  const formattedDate = new Date(year, month - 1, day, 12).toLocaleDateString('pt-BR', {
+    weekday: 'long',
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  });
+
+  return formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
+}
+
 function countAvailableSlots(days) {
   return days.reduce(
     (total, day) =>
@@ -216,7 +238,7 @@ function EmptySlotButton({ date, time, onEmptySlotClick }) {
   );
 }
 
-function AppointmentCard({ appointment }) {
+function AppointmentCard({ appointment, onOpenDetails }) {
   if (!appointment) {
     return null;
   }
@@ -225,7 +247,13 @@ function AppointmentCard({ appointment }) {
   const BadgeIcon = presentation.badgeIcon;
 
   return (
-    <div className={`schedule-event schedule-event--filled schedule-event--${presentation.modifier}`}>
+    <button
+      type="button"
+      className={`schedule-event schedule-event--filled schedule-event--${presentation.modifier} schedule-event--button`}
+      aria-haspopup="dialog"
+      aria-label={`Ver detalhes de ${appointment.patient} às ${appointment.time}`}
+      onClick={() => onOpenDetails(appointment)}
+    >
       <div className="schedule-event__header">
         <span className="schedule-event__type">{appointment.type}</span>
 
@@ -239,7 +267,7 @@ function AppointmentCard({ appointment }) {
 
       <strong className="schedule-event__title">{appointment.patient}</strong>
       <small className="schedule-event__details">{appointment.details}</small>
-    </div>
+    </button>
   );
 }
 
@@ -250,9 +278,10 @@ function ScheduleSlotContent({
   date,
   time,
   onEmptySlotClick,
+  onOpenDetails,
 }) {
   if (appointment) {
-    return <AppointmentCard appointment={appointment} />;
+    return <AppointmentCard appointment={appointment} onOpenDetails={onOpenDetails} />;
   }
 
   if (!hasAppointment && showEmptySlot) {
@@ -268,12 +297,105 @@ function ScheduleSlotContent({
   return null;
 }
 
+function AppointmentDetailsModal({ appointment, onClose }) {
+  if (!appointment) {
+    return null;
+  }
+
+  const presentation = getStatusPresentation(appointment.status);
+  const shouldShowType = normalizeText(appointment.type) !== normalizeText(presentation.label);
+
+  return (
+    <div className="schedule-details-backdrop" onClick={onClose}>
+      <section
+        className="schedule-details-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="schedule-details-title"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="schedule-details-modal__header">
+          <div>
+            <h3 id="schedule-details-title">Detalhes do registro</h3>
+            <p>Confira todas as informações operacionais deste horário.</p>
+          </div>
+
+          <button
+            type="button"
+            className="schedule-details-modal__close"
+            onClick={onClose}
+            aria-label="Fechar detalhes"
+          >
+            <LuX size={18} />
+          </button>
+        </div>
+
+        <div className="schedule-details-modal__status">
+          <span
+            className={`schedule-details-modal__status-pill schedule-details-modal__status-pill--${presentation.modifier}`}
+          >
+            {presentation.label}
+          </span>
+
+          {shouldShowType ? (
+            <span className="schedule-details-modal__type">{appointment.type}</span>
+          ) : null}
+
+          {presentation.badge ? (
+            <span className="schedule-details-modal__supporting-badge">
+              {presentation.badge}
+            </span>
+          ) : null}
+        </div>
+
+        <div className="schedule-details-modal__meta">
+          <article>
+            <span>Paciente / registro</span>
+            <strong>{appointment.patient}</strong>
+          </article>
+
+          <article>
+            <span>Especialidade</span>
+            <strong>{appointment.specialty}</strong>
+          </article>
+
+          <article>
+            <span>Médico responsável</span>
+            <strong>{appointment.professional}</strong>
+          </article>
+
+          <article>
+            <span>Data</span>
+            <strong>{formatAppointmentDate(appointment.date)}</strong>
+          </article>
+
+          <article>
+            <span>Horário</span>
+            <strong>{appointment.time}</strong>
+          </article>
+
+          <article>
+            <span>Status operacional</span>
+            <strong>{presentation.label}</strong>
+          </article>
+        </div>
+
+        <div className="schedule-details-modal__description">
+          <span>Detalhamento</span>
+          <p>{appointment.details}</p>
+        </div>
+      </section>
+    </div>
+  );
+}
+
 export default function WeeklySchedule() {
   const navigate = useNavigate();
   const [view, setView] = useState('week');
   const [specialtyFilter, setSpecialtyFilter] = useState('');
   const [professionalFilter, setProfessionalFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
 
   const selectedDay = weekDays.find((item) => item.active) || weekDays[0];
   const filteredAppointments = operationalEvents.filter((appointment) =>
@@ -327,6 +449,34 @@ export default function WeeklySchedule() {
     setProfessionalFilter('');
     setStatusFilter('');
   };
+
+  const handleOpenDetails = (appointment) => {
+    setSelectedAppointment(appointment);
+  };
+
+  const handleCloseDetails = () => {
+    setSelectedAppointment(null);
+  };
+
+  useEffect(() => {
+    if (!selectedAppointment) {
+      return undefined;
+    }
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        handleCloseDetails();
+      }
+    };
+
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [selectedAppointment]);
 
   return (
     <main className="weekly-schedule-page">
@@ -493,6 +643,7 @@ export default function WeeklySchedule() {
                     date={selectedDay.date}
                     time={time}
                     onEmptySlotClick={handleCreateVacancy}
+                    onOpenDetails={handleOpenDetails}
                   />
                 </div>
               </div>
@@ -543,6 +694,7 @@ export default function WeeklySchedule() {
                             date={day.date}
                             time={time}
                             onEmptySlotClick={handleCreateVacancy}
+                            onOpenDetails={handleOpenDetails}
                           />
                         ) : null}
                       </div>
@@ -581,11 +733,9 @@ export default function WeeklySchedule() {
                   : [];
 
                 return (
-                  <button
-                    type="button"
+                  <div
                     key={day.id}
                     className={`month-cell ${day.active ? 'month-cell--active' : ''} ${day.muted ? 'month-cell--muted' : ''}`}
-                    disabled={day.muted}
                   >
                     <span className="month-day-number">{day.number}</span>
 
@@ -594,12 +744,14 @@ export default function WeeklySchedule() {
                         const presentation = getStatusPresentation(appointment.status);
 
                         return (
-                          <span
+                          <button
+                            type="button"
                             key={appointment.id}
-                            className={`month-event-pill month-event-pill--${presentation.modifier}`}
+                            className={`month-event-pill month-event-pill--${presentation.modifier} month-event-pill--button`}
+                            onClick={() => handleOpenDetails(appointment)}
                           >
                             {appointment.time} {appointment.type}
-                          </span>
+                          </button>
                         );
                       })}
 
@@ -607,7 +759,7 @@ export default function WeeklySchedule() {
                         <small>+{dayAppointments.length - 2} registro(s)</small>
                       )}
                     </div>
-                  </button>
+                  </div>
                 );
               })}
             </div>
@@ -623,6 +775,11 @@ export default function WeeklySchedule() {
       >
         <LuCirclePlus size={28} />
       </button>
+
+      <AppointmentDetailsModal
+        appointment={selectedAppointment}
+        onClose={handleCloseDetails}
+      />
     </main>
   );
 }
