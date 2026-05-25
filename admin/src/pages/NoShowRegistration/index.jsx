@@ -42,6 +42,12 @@ export default function NoShowRegistration() {
   const navigate = useNavigate();
   const vacancyDateInputRef = useRef(null);
   const vacancyTimeInputRef = useRef(null);
+  const returnTo = typeof location.state?.returnTo === 'string'
+    ? location.state.returnTo
+    : '/vacancies';
+  const returnLabel = typeof location.state?.returnLabel === 'string'
+    ? location.state.returnLabel
+    : 'vagas';
   const prefilledDate = typeof location.state?.date === 'string' ? location.state.date : '';
   const prefilledTime = typeof location.state?.time === 'string' ? location.state.time : '';
 
@@ -58,6 +64,15 @@ export default function NoShowRegistration() {
     input.focus();
   };
 
+  const handleBackNavigation = () => {
+    if (typeof location.state?.returnTo === 'string') {
+      navigate(-1);
+      return;
+    }
+
+    navigate(returnTo);
+  };
+
   return (
     <main className="no-show-registration-page">
       <section className="no-show-registration-header">
@@ -65,10 +80,10 @@ export default function NoShowRegistration() {
           <button
             type="button"
             className="no-show-registration-back-button"
-            onClick={() => navigate('/vacancies')}
+            onClick={handleBackNavigation}
           >
             <LuChevronLeft size={20} />
-            Voltar para vagas
+            Voltar para {returnLabel}
           </button>
           <h1>Nova Vaga Remanescente</h1>
           <p>

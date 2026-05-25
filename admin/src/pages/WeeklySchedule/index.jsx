@@ -631,6 +631,8 @@ export default function WeeklySchedule() {
   const handleCreateVacancy = (date, time) => {
     navigate('/vacancies/new', {
       state: {
+        returnTo: '/weeklySchedule',
+        returnLabel: 'agenda operacional',
         date,
         time,
       },
@@ -1000,7 +1002,12 @@ export default function WeeklySchedule() {
         type="button"
         className="schedule-floating-button"
         aria-label="Adicionar vaga remanescente"
-        onClick={() => navigate('/vacancies/new')}
+        onClick={() => navigate('/vacancies/new', {
+          state: {
+            returnTo: '/weeklySchedule',
+            returnLabel: 'agenda operacional',
+          },
+        })}
       >
         <LuCirclePlus size={28} />
       </button>

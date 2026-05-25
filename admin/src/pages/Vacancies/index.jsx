@@ -281,7 +281,12 @@ export default function Vacancies() {
         <button
           type="button"
           className="new-vacancy-button"
-          onClick={() => navigate('/vacancies/new')}
+          onClick={() => navigate('/vacancies/new', {
+            state: {
+              returnTo: '/vacancies',
+              returnLabel: 'vagas',
+            },
+          })}
         >
           <LuPlus size={18} />
           Nova vaga
