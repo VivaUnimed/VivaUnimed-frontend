@@ -349,9 +349,13 @@
 }
 
 .weekly-calendar-grid {
-  min-width: 1080px;
   display: grid;
-  grid-template-columns: 140px repeat(7, 1fr);
+}
+
+.weekly-calendar-grid--week {
+  width: max-content;
+  min-width: 1080px;
+  grid-template-columns: 140px repeat(7, minmax(172px, max-content));
 }
 
 .weekly-calendar-grid--header {
@@ -360,6 +364,7 @@
 }
 
 .calendar-time-header {
+  min-height: 82px;
   background-color: #faf8f7;
   display: flex;
   align-items: center;
@@ -371,6 +376,8 @@
 }
 
 .calendar-day-header {
+  min-height: 82px;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -421,6 +428,7 @@
 }
 
 .calendar-time {
+  min-height: 112px;
   padding-top: 34px;
   background-color: #faf8f7;
   color: #374151;
@@ -429,8 +437,24 @@
   text-align: center;
 }
 
+.weekly-calendar-grid--week > .calendar-time-header,
+.weekly-calendar-grid--week > .calendar-day-header {
+  border-bottom: 1px solid #ece7e3;
+}
+
+.weekly-calendar-grid--week > .calendar-time,
+.weekly-calendar-grid--week > .calendar-cell {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.calendar-time--last-row,
+.calendar-cell--last-row {
+  border-bottom: none !important;
+}
+
 .calendar-cell {
   min-height: 112px;
+  min-width: 0;
   padding: 10px;
   border-left: 1px solid #f0f0f0;
   position: relative;
@@ -473,6 +497,7 @@
 
 .schedule-event {
   width: 100%;
+  min-width: 0;
   min-height: 90px;
   padding: 14px 16px;
   border-radius: 12px;
@@ -490,6 +515,7 @@
 }
 
 .schedule-event__header {
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -498,6 +524,7 @@
 
 .schedule-event__type {
   display: block;
+  min-width: 0;
   margin: 0;
   font-size: 10px;
   line-height: 13px;
@@ -745,13 +772,18 @@
 
 .weekly-calendar-grid--day {
   min-width: 720px;
-  grid-template-columns: 140px 1fr;
+  grid-template-columns: 140px minmax(0, 1fr);
 }
 
 .view-container-day,
 .view-container-week,
 .view-container-month {
   width: 100%;
+}
+
+.view-container-week {
+  width: max-content;
+  min-width: 100%;
 }
 
 .day-view-header,

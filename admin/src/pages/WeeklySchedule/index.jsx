@@ -75,7 +75,7 @@ const operationalEvents = [
   },
   {
     id: 3,
-    date: '2023-10-24',
+    date: ' ',
     time: '10:00',
     type: 'CONFIRMADA PELA FILA',
     patient: 'Ana Paula',
@@ -513,7 +513,7 @@ export default function WeeklySchedule() {
 
         {view === 'week' && (
           <div className="view-container-week">
-            <div className="weekly-calendar-grid weekly-calendar-grid--header">
+            <div className="weekly-calendar-grid weekly-calendar-grid--week">
               <div className="calendar-time-header">
                 <LuClock size={24} />
               </div>
@@ -529,31 +529,39 @@ export default function WeeklySchedule() {
                   <strong>{item.number}</strong>
                 </div>
               ))}
+
+              {timeSlots.map((time, timeIndex) => {
+                const isLastRow = timeIndex === timeSlots.length - 1;
+
+                return (
+                  <React.Fragment key={time}>
+                    <div className={`calendar-time ${isLastRow ? 'calendar-time--last-row' : ''}`}>
+                      {time}
+                    </div>
+
+                    {weekDays.map((day) => (
+                      <div
+                        key={`${day.date}-${time}`}
+                        className={`calendar-cell ${day.disabled ? 'calendar-cell--disabled' : ''} ${
+                          isLastRow ? 'calendar-cell--last-row' : ''
+                        }`}
+                      >
+                        {!day.disabled ? (
+                          <ScheduleSlotContent
+                            appointment={getAppointment(day.date, time, filteredAppointments)}
+                            hasAppointment={Boolean(getAppointment(day.date, time))}
+                            showEmptySlot={canShowEmptySlots}
+                            date={day.date}
+                            time={time}
+                            onEmptySlotClick={handleCreateVacancy}
+                          />
+                        ) : null}
+                      </div>
+                    ))}
+                  </React.Fragment>
+                );
+              })}
             </div>
-
-            {timeSlots.map((time) => (
-              <div key={time} className="weekly-calendar-grid calendar-row">
-                <div className="calendar-time">{time}</div>
-
-                {weekDays.map((day) => (
-                  <div
-                    key={`${day.date}-${time}`}
-                    className={`calendar-cell ${day.disabled ? 'calendar-cell--disabled' : ''}`}
-                  >
-                    {!day.disabled ? (
-                      <ScheduleSlotContent
-                        appointment={getAppointment(day.date, time, filteredAppointments)}
-                        hasAppointment={Boolean(getAppointment(day.date, time))}
-                        showEmptySlot={canShowEmptySlots}
-                        date={day.date}
-                        time={time}
-                        onEmptySlotClick={handleCreateVacancy}
-                      />
-                    ) : null}
-                  </div>
-                ))}
-              </div>
-            ))}
           </div>
         )}
 
