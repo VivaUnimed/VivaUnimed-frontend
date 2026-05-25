@@ -1,152 +1,703 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   LuCalendarDays,
-  LuFilter,
+  LuSlidersHorizontal,
   LuChevronDown,
   LuClock,
   LuCirclePlus,
-  LuCircleX,
   LuChevronLeft,
   LuChevronRight,
   LuUsers,
+  LuRefreshCw,
+  LuX,
 } from 'react-icons/lu';
+import { normalizeText } from '../../data/professionals';
 import './styles.css';
 
-const weekDays = [
-  { day: 'SEG', number: '23', date: '2023-10-23' },
-  { day: 'TER', number: '24', date: '2023-10-24', active: true },
-  { day: 'QUA', number: '25', date: '2023-10-25' },
-  { day: 'QUI', number: '26', date: '2023-10-26' },
-  { day: 'SEX', number: '27', date: '2023-10-27' },
-  { day: 'SÁB', number: '28', date: '2023-10-28', disabled: true },
-  { day: 'DOM', number: '29', date: '2023-10-29', disabled: true },
+const timeSlots = [
+  '08:00',
+  '09:00',
+  '10:00',
+  '11:00',
+  '14:00',
+  '15:00',
+  '16:00',
+  '17:00',
+  '18:00',
 ];
 
-const timeSlots = ['08:00', '09:00', '10:00', '11:00', '14:00', '15:00'];
-
-const appointments = [
-  {
-    id: 1,
-    date: '2023-10-23',
-    time: '08:00',
-    type: 'CONSULTA',
-    patient: 'Beatriz Oliveira',
-    details: 'Cardiologia - Sala 04',
-    status: 'busy',
-  },
-  {
-    id: 2,
-    date: '2023-10-24',
-    time: '08:00',
-    type: 'CONSULTA PRESENCIAL',
-    patient: 'Marcos Silva',
-    details: 'Ortopedia - Sala 02',
-    status: 'busy',
-  },
-  {
-    id: 3,
-    date: '2023-10-24',
-    time: '10:00',
-    type: 'RETORNO',
-    patient: 'Ana Paula',
-    details: 'Cardiologia - Sala 04',
-    status: 'busy',
-  },
-  {
-    id: 4,
-    date: '2023-10-25',
-    time: '09:00',
-    type: 'CANCELADO',
-    patient: 'Atendimento cancelado',
-    details: '',
-    status: 'canceled',
-  },
-  {
-    id: 5,
-    date: '2023-10-26',
-    time: '08:00',
-    type: 'CHECK-UP',
-    patient: 'Carlos Mendes',
-    details: 'Clínica Geral - Sala 01',
-    status: 'busy',
-  },
-  {
-    id: 6,
-    date: '2023-10-27',
-    time: '14:00',
-    type: 'EMERGÊNCIA',
-    patient: 'Juliana Castro',
-    details: 'Pronto atendimento',
-    status: 'emergency',
-  },
+const specialtyOptions = [
+  'Cardiologia',
+  'Ortopedia',
+  'Clínica Geral',
+  'Dermatologia',
+  'Pediatria',
 ];
 
-const monthDays = Array.from({ length: 35 }, (_, index) => {
-  const dayNumber = index - 0;
-  const isCurrentMonth = dayNumber >= 1 && dayNumber <= 31;
+const professionalOptions = [
+  'Dr. Ricardo Almeida',
+  'Dra. Mariana Lopes',
+  'Dr. Carlos Mendes',
+  'Dra. Juliana Castro',
+];
 
-  return {
-    id: index,
-    number: isCurrentMonth ? dayNumber : '',
-    date: isCurrentMonth ? `2023-10-${String(dayNumber).padStart(2, '0')}` : null,
-    muted: !isCurrentMonth,
-    active: dayNumber === 24,
-  };
-});
+const statusFilterOptions = [
+  { value: '', label: 'Todos os status' },
+  { value: 'occupied', label: 'Ocupado' },
+  { value: 'free', label: 'Livre' },
+  { value: 'cancelled', label: 'Cancelado' },
+  { value: 'available_vacancy', label: 'Vaga remanescente' },
+  { value: 'confirmed_by_queue', label: 'Confirmada pela fila' },
+  { value: 'expired', label: 'Expirada' },
+];
 
-function getAppointment(date, time) {
+const weekdayLabels = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
+
+function capitalizeText(text) {
+  if (!text) {
+    return '';
+  }
+
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+function getCalendarDate(date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12);
+}
+
+function formatDateKey(date) {
+  const normalizedDate = getCalendarDate(date);
+
+  return [
+    normalizedDate.getFullYear(),
+    String(normalizedDate.getMonth() + 1).padStart(2, '0'),
+    String(normalizedDate.getDate()).padStart(2, '0'),
+  ].join('-');
+}
+
+function isSameDate(firstDate, secondDate) {
+  return formatDateKey(firstDate) === formatDateKey(secondDate);
+}
+
+function addDays(date, amount) {
+  const nextDate = getCalendarDate(date);
+  nextDate.setDate(nextDate.getDate() + amount);
+  return nextDate;
+}
+
+function addMonths(date, amount) {
+  const normalizedDate = getCalendarDate(date);
+  const targetMonth = new Date(
+    normalizedDate.getFullYear(),
+    normalizedDate.getMonth() + amount,
+    1,
+    12,
+  );
+  const lastDayOfMonth = new Date(
+    targetMonth.getFullYear(),
+    targetMonth.getMonth() + 1,
+    0,
+    12,
+  ).getDate();
+
+  targetMonth.setDate(Math.min(normalizedDate.getDate(), lastDayOfMonth));
+
+  return targetMonth;
+}
+
+function getStartOfWeek(date) {
+  const normalizedDate = getCalendarDate(date);
+  const dayOfWeek = normalizedDate.getDay();
+  const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+
+  return addDays(normalizedDate, diff);
+}
+
+function getMonthName(date) {
+  return capitalizeText(date.toLocaleDateString('pt-BR', { month: 'long' }));
+}
+
+function formatDayMonth(date) {
+  return `${date.getDate()} de ${getMonthName(date)}`;
+}
+
+function formatDayMonthYear(date) {
+  return `${formatDayMonth(date)}, ${date.getFullYear()}`;
+}
+
+function formatMonthPeriod(date) {
+  return `${getMonthName(date)}, ${date.getFullYear()}`;
+}
+
+function formatMonthTitle(date) {
+  return `${getMonthName(date)} ${date.getFullYear()}`;
+}
+
+function formatWeekPeriod(date) {
+  const startOfWeek = getStartOfWeek(date);
+  const endOfWeek = addDays(startOfWeek, 6);
+  const sameMonth = startOfWeek.getMonth() === endOfWeek.getMonth()
+    && startOfWeek.getFullYear() === endOfWeek.getFullYear();
+  const sameYear = startOfWeek.getFullYear() === endOfWeek.getFullYear();
+
+  if (sameMonth) {
+    return `${startOfWeek.getDate()} - ${endOfWeek.getDate()} de ${getMonthName(startOfWeek)}, ${startOfWeek.getFullYear()}`;
+  }
+
+  if (sameYear) {
+    return `${startOfWeek.getDate()} de ${getMonthName(startOfWeek)} - ${endOfWeek.getDate()} de ${getMonthName(endOfWeek)}, ${startOfWeek.getFullYear()}`;
+  }
+
+  return `${startOfWeek.getDate()} de ${getMonthName(startOfWeek)}, ${startOfWeek.getFullYear()} - ${endOfWeek.getDate()} de ${getMonthName(endOfWeek)}, ${endOfWeek.getFullYear()}`;
+}
+
+function getWeekDays(currentDate) {
+  const startOfWeek = getStartOfWeek(currentDate);
+
+  return Array.from({ length: 7 }, (_, index) => {
+    const date = addDays(startOfWeek, index);
+    const dayOfWeek = date.getDay();
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
+    return {
+      day: weekdayLabels[dayOfWeek],
+      number: String(date.getDate()),
+      date: formatDateKey(date),
+      active: isSameDate(date, currentDate),
+      disabled: isWeekend,
+    };
+  });
+}
+
+function getMonthDays(currentDate) {
+  const firstDayOfMonth = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth(),
+    1,
+    12,
+  );
+  const daysInMonth = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth() + 1,
+    0,
+    12,
+  ).getDate();
+  const leadingEmptyDays = firstDayOfMonth.getDay();
+  const totalCells = Math.ceil((leadingEmptyDays + daysInMonth) / 7) * 7;
+
+  return Array.from({ length: totalCells }, (_, index) => {
+    const dayNumber = index - leadingEmptyDays + 1;
+    const isCurrentMonth = dayNumber >= 1 && dayNumber <= daysInMonth;
+
+    if (!isCurrentMonth) {
+      return {
+        id: `month-empty-${currentDate.getFullYear()}-${currentDate.getMonth()}-${index}`,
+        number: '',
+        date: null,
+        muted: true,
+        active: false,
+      };
+    }
+
+    const date = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth(),
+      dayNumber,
+      12,
+    );
+
+    return {
+      id: formatDateKey(date),
+      number: String(dayNumber),
+      date: formatDateKey(date),
+      muted: false,
+      active: isSameDate(date, currentDate),
+    };
+  });
+}
+
+function buildOperationalEvents(referenceDate) {
+  const today = getCalendarDate(referenceDate);
+  const tomorrow = addDays(today, 1);
+  const inTwoDays = addDays(today, 2);
+  const inThreeDays = addDays(today, 3);
+  const startOfWeek = getStartOfWeek(today);
+  const monday = addDays(startOfWeek, 0);
+  const wednesday = addDays(startOfWeek, 2);
+
+  return [
+    {
+      id: 1,
+      date: formatDateKey(today),
+      time: '08:00',
+      type: 'OCUPADO',
+      patient: 'Beatriz Oliveira',
+      details: 'Cardiologia - Dra. Mariana Lopes',
+      specialty: 'Cardiologia',
+      professional: 'Dra. Mariana Lopes',
+      status: 'occupied',
+    },
+    {
+      id: 2,
+      date: formatDateKey(today),
+      time: '16:00',
+      type: 'AGUARDANDO ACEITE',
+      patient: 'Vaga remanescente',
+      details: 'Pediatria - Expira em 10 min',
+      specialty: 'Pediatria',
+      professional: 'Dr. Carlos Mendes',
+      status: 'available_vacancy',
+    },
+    {
+      id: 3,
+      date: formatDateKey(tomorrow),
+      time: '09:00',
+      type: 'CANCELADO',
+      patient: 'Atendimento cancelado',
+      details: 'Horário disponível para reaproveitamento',
+      specialty: 'Ortopedia',
+      professional: 'Dra. Juliana Castro',
+      status: 'cancelled',
+    },
+    {
+      id: 4,
+      date: formatDateKey(inTwoDays),
+      time: '17:00',
+      type: 'CONFIRMADA PELA FILA',
+      patient: 'Lucas Ferreira',
+      details: 'Dermatologia - Dra. Juliana Castro',
+      specialty: 'Dermatologia',
+      professional: 'Dra. Juliana Castro',
+      status: 'confirmed_by_queue',
+    },
+    {
+      id: 5,
+      date: formatDateKey(inThreeDays),
+      time: '14:00',
+      type: 'EXPIRADA',
+      patient: 'Sem aceite no prazo',
+      details: 'Clínica Geral - Expirou há 8 min',
+      specialty: 'Clínica Geral',
+      professional: 'Dra. Mariana Lopes',
+      status: 'expired',
+    },
+    {
+      id: 6,
+      date: formatDateKey(monday),
+      time: '10:00',
+      type: 'OCUPADO',
+      patient: 'Marcos Silva',
+      details: 'Ortopedia - Sala 02',
+      specialty: 'Ortopedia',
+      professional: 'Dr. Carlos Mendes',
+      status: 'occupied',
+    },
+    {
+      id: 7,
+      date: formatDateKey(wednesday),
+      time: '15:00',
+      type: 'CONFIRMADA PELA FILA',
+      patient: 'Ana Paula',
+      details: 'Cardiologia - Dr. Ricardo Almeida',
+      specialty: 'Cardiologia',
+      professional: 'Dr. Ricardo Almeida',
+      status: 'confirmed_by_queue',
+    },
+  ];
+}
+
+const statusPresentation = {
+  occupied: {
+    label: 'Ocupado',
+    modifier: 'occupied',
+  },
+  cancelled: {
+    label: 'Cancelado',
+    modifier: 'cancelled',
+  },
+  available_vacancy: {
+    label: 'Vaga remanescente',
+    modifier: 'available-vacancy',
+    badge: 'Disponível',
+    badgeVariant: 'highlight',
+  },
+  confirmed_by_queue: {
+    label: 'Confirmada pela fila',
+    modifier: 'confirmed',
+    badge: 'Fila confirmou',
+    badgeVariant: 'success',
+    badgeIcon: LuUsers,
+  },
+  expired: {
+    label: 'Expirada',
+    modifier: 'expired',
+  },
+};
+
+const legendItems = [
+  { label: 'Ocupado', legendClass: 'legend-color--occupied' },
+  { label: 'Livre', legendClass: 'legend-color--free' },
+  { label: 'Cancelado', legendClass: 'legend-color--cancelled' },
+  { label: 'Vaga remanescente', legendClass: 'legend-color--available-vacancy' },
+  { label: 'Confirmada pela fila', legendClass: 'legend-color--confirmed' },
+  { label: 'Expirada', legendClass: 'legend-color--expired' },
+];
+
+function getStatusPresentation(status) {
+  return statusPresentation[status] || statusPresentation.occupied;
+}
+
+function getAppointment(date, time, appointments = []) {
   return appointments.find((item) => item.date === date && item.time === time);
 }
 
-function getAppointmentsByDate(date) {
+function getAppointmentsByDate(date, appointments = []) {
   return appointments.filter((item) => item.date === date);
 }
 
-function AppointmentCard({ appointment }) {
-  if (!appointment) {
-    return (
-      <button type="button" className="empty-slot" aria-label="Adicionar horário">
-        <LuCirclePlus size={24} />
-      </button>
-    );
+function formatAppointmentDate(dateString) {
+  if (!dateString || !dateString.trim()) {
+    return 'Data não informada';
   }
 
-  if (appointment.status === 'canceled') {
-    return (
-      <div className="schedule-event schedule-event--canceled">
-        <LuCircleX size={18} />
-        <strong>CANCELADO</strong>
-      </div>
-    );
+  const [year, month, day] = dateString.split('-').map(Number);
+
+  if (!year || !month || !day) {
+    return 'Data não informada';
   }
+
+  const formattedDate = new Date(year, month - 1, day, 12).toLocaleDateString('pt-BR', {
+    weekday: 'long',
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  });
+
+  return formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
+}
+
+function countAvailableSlots(days, appointments) {
+  return days.reduce(
+    (total, day) =>
+      total + timeSlots.filter((time) => !getAppointment(day.date, time, appointments)).length,
+    0,
+  );
+}
+
+function appointmentMatchesFilters(appointment, filters) {
+  const normalizedSpecialtyFilter = normalizeText(filters.specialtyFilter);
+  const normalizedProfessionalFilter = normalizeText(filters.professionalFilter);
+  const matchesSpecialty =
+    !normalizedSpecialtyFilter
+    || normalizeText(appointment.specialty) === normalizedSpecialtyFilter;
+  const matchesProfessional =
+    !normalizedProfessionalFilter
+    || normalizeText(appointment.professional) === normalizedProfessionalFilter;
+  const matchesStatus = !filters.statusFilter || appointment.status === filters.statusFilter;
+
+  return matchesSpecialty && matchesProfessional && matchesStatus;
+}
+
+function EmptySlotButton({ date, time, onEmptySlotClick }) {
+  return (
+    <button
+      type="button"
+      className="empty-slot"
+      aria-label={`Adicionar vaga remanescente em ${date} às ${time}`}
+      onClick={() => onEmptySlotClick(date, time)}
+    >
+      <LuCirclePlus size={24} />
+    </button>
+  );
+}
+
+function AppointmentCard({ appointment, onOpenDetails }) {
+  if (!appointment) {
+    return null;
+  }
+
+  const presentation = getStatusPresentation(appointment.status);
+  const BadgeIcon = presentation.badgeIcon;
 
   return (
-    <div
-      className={`schedule-event schedule-event--filled ${
-        appointment.status === 'emergency' ? 'schedule-event--emergency' : 'schedule-event--green'
-      }`}
+    <button
+      type="button"
+      className={`schedule-event schedule-event--filled schedule-event--${presentation.modifier} schedule-event--button`}
+      aria-haspopup="dialog"
+      aria-label={`Ver detalhes de ${appointment.patient} às ${appointment.time}`}
+      onClick={() => onOpenDetails(appointment)}
     >
-      <span>{appointment.type}</span>
-      <strong>{appointment.patient}</strong>
-      <small>{appointment.details}</small>
+      <div className="schedule-event__header">
+        <span className="schedule-event__type">{appointment.type}</span>
+
+        {presentation.badge ? (
+          <span className={`schedule-event__badge schedule-event__badge--${presentation.badgeVariant}`}>
+            {BadgeIcon ? <BadgeIcon size={12} /> : null}
+            {presentation.badge}
+          </span>
+        ) : null}
+      </div>
+
+      <strong className="schedule-event__title">{appointment.patient}</strong>
+      <small className="schedule-event__details">{appointment.details}</small>
+    </button>
+  );
+}
+
+function ScheduleSlotContent({
+  appointment,
+  hasAppointment,
+  showEmptySlot,
+  date,
+  time,
+  onEmptySlotClick,
+  onOpenDetails,
+}) {
+  if (appointment) {
+    return <AppointmentCard appointment={appointment} onOpenDetails={onOpenDetails} />;
+  }
+
+  if (!hasAppointment && showEmptySlot) {
+    return (
+      <EmptySlotButton
+        date={date}
+        time={time}
+        onEmptySlotClick={onEmptySlotClick}
+      />
+    );
+  }
+
+  return null;
+}
+
+function AppointmentDetailsModal({ appointment, onClose }) {
+  if (!appointment) {
+    return null;
+  }
+
+  const presentation = getStatusPresentation(appointment.status);
+  const shouldShowType = normalizeText(appointment.type) !== normalizeText(presentation.label);
+
+  return (
+    <div className="schedule-details-backdrop" onClick={onClose}>
+      <section
+        className="schedule-details-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="schedule-details-title"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="schedule-details-modal__header">
+          <div>
+            <h3 id="schedule-details-title">Detalhes do registro</h3>
+            <p>Confira todas as informações operacionais deste horário.</p>
+          </div>
+
+          <button
+            type="button"
+            className="schedule-details-modal__close"
+            onClick={onClose}
+            aria-label="Fechar detalhes"
+          >
+            <LuX size={18} />
+          </button>
+        </div>
+
+        <div className="schedule-details-modal__status">
+          <span
+            className={`schedule-details-modal__status-pill schedule-details-modal__status-pill--${presentation.modifier}`}
+          >
+            {presentation.label}
+          </span>
+
+          {shouldShowType ? (
+            <span className="schedule-details-modal__type">{appointment.type}</span>
+          ) : null}
+
+          {presentation.badge ? (
+            <span className="schedule-details-modal__supporting-badge">
+              {presentation.badge}
+            </span>
+          ) : null}
+        </div>
+
+        <div className="schedule-details-modal__meta">
+          <article>
+            <span>Paciente / registro</span>
+            <strong>{appointment.patient}</strong>
+          </article>
+
+          <article>
+            <span>Especialidade</span>
+            <strong>{appointment.specialty}</strong>
+          </article>
+
+          <article>
+            <span>Médico responsável</span>
+            <strong>{appointment.professional}</strong>
+          </article>
+
+          <article>
+            <span>Data</span>
+            <strong>{formatAppointmentDate(appointment.date)}</strong>
+          </article>
+
+          <article>
+            <span>Horário</span>
+            <strong>{appointment.time}</strong>
+          </article>
+
+          <article>
+            <span>Status operacional</span>
+            <strong>{presentation.label}</strong>
+          </article>
+        </div>
+
+        <div className="schedule-details-modal__description">
+          <span>Detalhamento</span>
+          <p>{appointment.details}</p>
+        </div>
+      </section>
     </div>
   );
 }
 
 export default function WeeklySchedule() {
+  const navigate = useNavigate();
+  const [referenceDate] = useState(() => getCalendarDate(new Date()));
+  const [currentDate, setCurrentDate] = useState(() => getCalendarDate(new Date()));
   const [view, setView] = useState('week');
+  const [specialtyFilter, setSpecialtyFilter] = useState('');
+  const [professionalFilter, setProfessionalFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
 
-  const selectedDay = weekDays.find((item) => item.active);
-  const selectedDayAppointments = getAppointmentsByDate(selectedDay.date);
+  const operationalEvents = buildOperationalEvents(referenceDate);
+  const weekDays = getWeekDays(currentDate);
+  const monthDays = getMonthDays(currentDate);
+  const selectedDay = weekDays.find((item) => item.active) || weekDays[0];
+  const filteredAppointments = operationalEvents.filter((appointment) =>
+    appointmentMatchesFilters(appointment, {
+      specialtyFilter,
+      professionalFilter,
+      statusFilter,
+    }),
+  );
+  const selectedDayAppointments = getAppointmentsByDate(selectedDay.date, filteredAppointments);
+  const visibleWeekDays = weekDays.filter((item) => !item.disabled);
+  const visibleMonthDates = new Set(
+    monthDays
+      .filter((item) => item.date)
+      .map((item) => item.date),
+  );
+  const visibleWeekDates = new Set(visibleWeekDays.map((item) => item.date));
+  const weekAppointments = filteredAppointments.filter((appointment) =>
+    visibleWeekDates.has(appointment.date),
+  );
+  const monthAppointments = filteredAppointments.filter((appointment) =>
+    visibleMonthDates.has(appointment.date),
+  );
+  const isFreeSlotsOnlyView = statusFilter === 'free' && !specialtyFilter && !professionalFilter;
+  const totalAppointments = isFreeSlotsOnlyView
+    ? view === 'day'
+      ? countAvailableSlots([selectedDay], operationalEvents)
+      : view === 'week'
+        ? countAvailableSlots(visibleWeekDays, operationalEvents)
+        : 0
+    : view === 'day'
+      ? selectedDayAppointments.length
+      : view === 'week'
+        ? weekAppointments.length
+        : monthAppointments.length;
+  const totalLabel = isFreeSlotsOnlyView
+    ? totalAppointments === 1
+      ? 'horário livre'
+      : 'horários livres'
+    : totalAppointments === 1
+      ? 'registro operacional'
+      : 'registros operacionais';
+  const canShowEmptySlots = !specialtyFilter && !professionalFilter
+    && (!statusFilter || statusFilter === 'free');
+  const hasActiveFilters = Boolean(specialtyFilter || professionalFilter || statusFilter);
 
-  const totalAppointments = view === 'day' ? selectedDayAppointments.length : appointments.length;
-  const periodLabel = view === 'month' ? 'Outubro, 2023' : view === 'day' ? '24 de Outubro, 2023' : '23 - 29 de Outubro, 2023';
+  const periodLabel =
+    view === 'month'
+      ? formatMonthPeriod(currentDate)
+      : view === 'day'
+        ? formatDayMonthYear(currentDate)
+        : formatWeekPeriod(currentDate);
+
+  const handleCreateVacancy = (date, time) => {
+    navigate('/vacancies/new', {
+      state: {
+        returnTo: '/weeklySchedule',
+        returnLabel: 'agenda operacional',
+        date,
+        time,
+      },
+    });
+  };
+
+  const handleClearFilters = () => {
+    setSpecialtyFilter('');
+    setProfessionalFilter('');
+    setStatusFilter('');
+  };
+
+  const handleOpenDetails = (appointment) => {
+    setSelectedAppointment(appointment);
+  };
+
+  const handleCloseDetails = () => {
+    setSelectedAppointment(null);
+  };
+
+  const handlePreviousPeriod = () => {
+    setCurrentDate((previousDate) => (
+      view === 'day'
+        ? addDays(previousDate, -1)
+        : addMonths(previousDate, -1)
+    ));
+  };
+
+  const handleNextPeriod = () => {
+    setCurrentDate((previousDate) => (
+      view === 'day'
+        ? addDays(previousDate, 1)
+        : addMonths(previousDate, 1)
+    ));
+  };
+
+  useEffect(() => {
+    if (!selectedAppointment) {
+      return undefined;
+    }
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        handleCloseDetails();
+      }
+    };
+
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [selectedAppointment]);
 
   return (
     <main className="weekly-schedule-page">
       <section className="weekly-schedule-header">
         <div>
-          <h1>Agenda de Atendimentos</h1>
+          <h1>Agenda Operacional</h1>
+          <p className="weekly-schedule-header__subtitle">
+            Visualize horários ocupados, livres, cancelados e vagas remanescentes
+            disponíveis para reaproveitamento.
+          </p>
 
           <div className="weekly-schedule-header__info">
             <span>
@@ -154,7 +705,9 @@ export default function WeeklySchedule() {
               {periodLabel}
             </span>
 
-            <p>Visualizando: {totalAppointments} atendimentos</p>
+            <p>
+              Visualizando: {totalAppointments} {totalLabel}
+            </p>
           </div>
         </div>
 
@@ -184,65 +737,108 @@ export default function WeeklySchedule() {
       </section>
 
       <section className="weekly-schedule-top">
-        <aside className="quick-filters-card">
-          <div className="quick-filters-card__title">
-            <LuFilter size={20} />
-            <h2>Filtros Rápidos</h2>
-          </div>
-
-          <label>
-            ESPECIALIDADE
-            <div className="quick-filter-select">
-              <select defaultValue="">
-                <option value="">Todas as Especialidades</option>
-                <option value="cardiologia">Cardiologia</option>
-                <option value="ortopedia">Ortopedia</option>
-              </select>
-              <LuChevronDown size={16} />
-            </div>
+        <div className="weekly-schedule-filters" aria-label="Filtros da agenda operacional">
+          <label className="weekly-schedule-filter">
+            <LuSlidersHorizontal size={16} />
+            <select
+              value={specialtyFilter}
+              onChange={(event) => setSpecialtyFilter(event.target.value)}
+              aria-label="Filtrar por especialidade"
+            >
+              <option value="">Especialidade</option>
+              {specialtyOptions.map((specialty) => (
+                <option key={specialty} value={specialty}>
+                  {specialty}
+                </option>
+              ))}
+            </select>
+            <LuChevronDown size={16} className="weekly-schedule-filter__chevron" />
           </label>
 
-          <label>
-            MÉDICO RESPONSÁVEL
-            <div className="quick-filter-select">
-              <select defaultValue="">
-                <option value="">Qualquer Médico</option>
-                <option value="ricardo-silva">Dr. Ricardo Silva</option>
-                <option value="ana-clara">Dra. Ana Clara</option>
-                <option value="marcos-silva">Dr. Marcos Silva</option>
-                <option value="beatriz-oliveira">Dra. Beatriz Oliveira</option>
-              </select>
-
-              <LuChevronDown size={16} />
-            </div>
+          <label className="weekly-schedule-filter">
+            <LuSlidersHorizontal size={16} />
+            <select
+              value={professionalFilter}
+              onChange={(event) => setProfessionalFilter(event.target.value)}
+              aria-label="Filtrar por médico responsável"
+            >
+              <option value="">Médico responsável</option>
+              {professionalOptions.map((professional) => (
+                <option key={professional} value={professional}>
+                  {professional}
+                </option>
+              ))}
+            </select>
+            <LuChevronDown size={16} className="weekly-schedule-filter__chevron" />
           </label>
 
-          <div className="schedule-legend">
-            <h3>LEGENDA</h3>
-            <div className="schedule-legend__grid">
-              <span><small className="legend-color legend-color--busy" /> Ocupado</span>
-              <span><small className="legend-color legend-color--free" /> Livre</span>
-              <span><small className="legend-color legend-color--canceled" /> Cancelado</span>
-              <span><small className="legend-color legend-color--emergency" /> Emergência</span>
-            </div>
+          <label className="weekly-schedule-filter">
+            <LuSlidersHorizontal size={16} />
+            <select
+              value={statusFilter}
+              onChange={(event) => setStatusFilter(event.target.value)}
+              aria-label="Filtrar por status da vaga"
+            >
+              {statusFilterOptions.map((option, index) => (
+                <option
+                  key={option.value || 'all-status'}
+                  value={option.value}
+                >
+                  {index === 0 ? 'Status da vaga' : option.label}
+                </option>
+              ))}
+            </select>
+            <LuChevronDown size={16} className="weekly-schedule-filter__chevron" />
+          </label>
+
+          <button
+            type="button"
+            className="weekly-schedule-filter-clear-button"
+            onClick={handleClearFilters}
+            disabled={!hasActiveFilters}
+          >
+            <LuRefreshCw size={16} />
+            Limpar filtros
+          </button>
+        </div>
+
+        <div className="schedule-legend">
+          <span className="schedule-legend__label">Legenda</span>
+          <div className="schedule-legend__grid">
+            {legendItems.map((item) => (
+              <span key={item.label}>
+                <small className={`legend-color ${item.legendClass}`} />
+                {item.label}
+              </span>
+            ))}
           </div>
-        </aside>
+        </div>
       </section>
 
       <section className="weekly-calendar-card">
         {view === 'day' && (
           <div className="view-container-day">
             <div className="day-view-header">
-              <button type="button" className="nav-button" aria-label="Dia anterior">
+              <button
+                type="button"
+                className="nav-button"
+                aria-label="Dia anterior"
+                onClick={handlePreviousPeriod}
+              >
                 <LuChevronLeft size={20} />
               </button>
 
               <div>
-                <span>TERÇA-FEIRA</span>
-                <strong>24 de Outubro</strong>
+                <span>{currentDate.toLocaleDateString('pt-BR', { weekday: 'long' }).toUpperCase()}</span>
+                <strong>{formatDayMonth(currentDate)}</strong>
               </div>
 
-              <button type="button" className="nav-button" aria-label="Próximo dia">
+              <button
+                type="button"
+                className="nav-button"
+                aria-label="Próximo dia"
+                onClick={handleNextPeriod}
+              >
                 <LuChevronRight size={20} />
               </button>
             </div>
@@ -261,7 +857,15 @@ export default function WeeklySchedule() {
               <div key={time} className="weekly-calendar-grid weekly-calendar-grid--day calendar-row">
                 <div className="calendar-time">{time}</div>
                 <div className="calendar-cell">
-                  <AppointmentCard appointment={getAppointment(selectedDay.date, time)} />
+                  <ScheduleSlotContent
+                    appointment={getAppointment(selectedDay.date, time, filteredAppointments)}
+                    hasAppointment={Boolean(getAppointment(selectedDay.date, time, operationalEvents))}
+                    showEmptySlot={canShowEmptySlots}
+                    date={selectedDay.date}
+                    time={time}
+                    onEmptySlotClick={handleCreateVacancy}
+                    onOpenDetails={handleOpenDetails}
+                  />
                 </div>
               </div>
             ))}
@@ -270,7 +874,7 @@ export default function WeeklySchedule() {
 
         {view === 'week' && (
           <div className="view-container-week">
-            <div className="weekly-calendar-grid weekly-calendar-grid--header">
+            <div className="weekly-calendar-grid weekly-calendar-grid--week">
               <div className="calendar-time-header">
                 <LuClock size={24} />
               </div>
@@ -286,35 +890,63 @@ export default function WeeklySchedule() {
                   <strong>{item.number}</strong>
                 </div>
               ))}
+
+              {timeSlots.map((time, timeIndex) => {
+                const isLastRow = timeIndex === timeSlots.length - 1;
+
+                return (
+                  <React.Fragment key={time}>
+                    <div className={`calendar-time ${isLastRow ? 'calendar-time--last-row' : ''}`}>
+                      {time}
+                    </div>
+
+                    {weekDays.map((day) => (
+                      <div
+                        key={`${day.date}-${time}`}
+                        className={`calendar-cell ${day.disabled ? 'calendar-cell--disabled' : ''} ${
+                          isLastRow ? 'calendar-cell--last-row' : ''
+                        }`}
+                      >
+                        {!day.disabled ? (
+                          <ScheduleSlotContent
+                            appointment={getAppointment(day.date, time, filteredAppointments)}
+                            hasAppointment={Boolean(getAppointment(day.date, time, operationalEvents))}
+                            showEmptySlot={canShowEmptySlots}
+                            date={day.date}
+                            time={time}
+                            onEmptySlotClick={handleCreateVacancy}
+                            onOpenDetails={handleOpenDetails}
+                          />
+                        ) : null}
+                      </div>
+                    ))}
+                  </React.Fragment>
+                );
+              })}
             </div>
-
-            {timeSlots.map((time) => (
-              <div key={time} className="weekly-calendar-grid calendar-row">
-                <div className="calendar-time">{time}</div>
-
-                {weekDays.map((day) => (
-                  <div
-                    key={`${day.date}-${time}`}
-                    className={`calendar-cell ${day.disabled ? 'calendar-cell--disabled' : ''}`}
-                  >
-                    {!day.disabled && <AppointmentCard appointment={getAppointment(day.date, time)} />}
-                  </div>
-                ))}
-              </div>
-            ))}
           </div>
         )}
 
         {view === 'month' && (
           <div className="view-container-month">
             <div className="month-view-header">
-              <button type="button" className="nav-button" aria-label="Mês anterior">
+              <button
+                type="button"
+                className="nav-button"
+                aria-label="Mês anterior"
+                onClick={handlePreviousPeriod}
+              >
                 <LuChevronLeft size={20} />
               </button>
 
-              <strong>Outubro 2023</strong>
+              <strong>{formatMonthTitle(currentDate)}</strong>
 
-              <button type="button" className="nav-button" aria-label="Próximo mês">
+              <button
+                type="button"
+                className="nav-button"
+                aria-label="Próximo mês"
+                onClick={handleNextPeriod}
+              >
                 <LuChevronRight size={20} />
               </button>
             </div>
@@ -327,32 +959,38 @@ export default function WeeklySchedule() {
 
             <div className="month-grid-body">
               {monthDays.map((day) => {
-                const dayAppointments = day.date ? getAppointmentsByDate(day.date) : [];
+                const dayAppointments = day.date
+                  ? getAppointmentsByDate(day.date, filteredAppointments)
+                  : [];
 
                 return (
-                  <button
-                    type="button"
+                  <div
                     key={day.id}
                     className={`month-cell ${day.active ? 'month-cell--active' : ''} ${day.muted ? 'month-cell--muted' : ''}`}
-                    disabled={day.muted}
                   >
                     <span className="month-day-number">{day.number}</span>
 
                     <div className="month-events-list">
-                      {dayAppointments.slice(0, 2).map((appointment) => (
-                        <span
-                          key={appointment.id}
-                          className={`month-event-pill month-event-pill--${appointment.status}`}
-                        >
-                          {appointment.time} {appointment.patient}
-                        </span>
-                      ))}
+                      {dayAppointments.slice(0, 2).map((appointment) => {
+                        const presentation = getStatusPresentation(appointment.status);
+
+                        return (
+                          <button
+                            type="button"
+                            key={appointment.id}
+                            className={`month-event-pill month-event-pill--${presentation.modifier} month-event-pill--button`}
+                            onClick={() => handleOpenDetails(appointment)}
+                          >
+                            {appointment.time} {appointment.type}
+                          </button>
+                        );
+                      })}
 
                       {dayAppointments.length > 2 && (
-                        <small>+{dayAppointments.length - 2} atendimento(s)</small>
+                        <small>+{dayAppointments.length - 2} registro(s)</small>
                       )}
                     </div>
-                  </button>
+                  </div>
                 );
               })}
             </div>
@@ -360,9 +998,24 @@ export default function WeeklySchedule() {
         )}
       </section>
 
-      <button type="button" className="schedule-floating-button" aria-label="Adicionar atendimento">
+      <button
+        type="button"
+        className="schedule-floating-button"
+        aria-label="Adicionar vaga remanescente"
+        onClick={() => navigate('/vacancies/new', {
+          state: {
+            returnTo: '/weeklySchedule',
+            returnLabel: 'agenda operacional',
+          },
+        })}
+      >
         <LuCirclePlus size={28} />
       </button>
+
+      <AppointmentDetailsModal
+        appointment={selectedAppointment}
+        onClose={handleCloseDetails}
+      />
     </main>
   );
 }

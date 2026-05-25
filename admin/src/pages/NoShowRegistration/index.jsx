@@ -1,5 +1,8 @@
+import { useRef } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   LuCalendarDays,
+  LuChevronLeft,
   LuChevronDown,
   LuClock3,
   LuMapPin,
@@ -17,17 +20,75 @@ const specialties = ['Cardiologia', 'Ortopedia', 'Pediatria'];
 
 const units = ['Unidade Centro', 'Unidade Zona Sul', 'Unidade Norte'];
 
+const vacancyTypes = [
+  'No-show',
+  'Cancelamento',
+  'Desistência',
+  'Horário ocioso',
+  'Remanejamento',
+  'Outro',
+];
+
+const expirationOptions = [
+  '5 minutos',
+  '10 minutos',
+  '15 minutos',
+  '30 minutos',
+  'Personalizado',
+];
+
 export default function NoShowRegistration() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const vacancyDateInputRef = useRef(null);
+  const vacancyTimeInputRef = useRef(null);
+  const returnTo = typeof location.state?.returnTo === 'string'
+    ? location.state.returnTo
+    : '/vacancies';
+  const returnLabel = typeof location.state?.returnLabel === 'string'
+    ? location.state.returnLabel
+    : 'vagas';
+  const prefilledDate = typeof location.state?.date === 'string' ? location.state.date : '';
+  const prefilledTime = typeof location.state?.time === 'string' ? location.state.time : '';
+
+  const openNativePicker = (input) => {
+    if (!input) {
+      return;
+    }
+
+    if (typeof input.showPicker === 'function') {
+      input.showPicker();
+      return;
+    }
+
+    input.focus();
+  };
+
+  const handleBackNavigation = () => {
+    if (typeof location.state?.returnTo === 'string') {
+      navigate(-1);
+      return;
+    }
+
+    navigate(returnTo);
+  };
+
   return (
     <main className="no-show-registration-page">
       <section className="no-show-registration-header">
         <div>
-          <span className="no-show-registration-header__eyebrow">
-            Disponibilidade imediata
-          </span>
-          <h1>Nova Vaga No-Show</h1>
+          <button
+            type="button"
+            className="no-show-registration-back-button"
+            onClick={handleBackNavigation}
+          >
+            <LuChevronLeft size={20} />
+            Voltar para {returnLabel}
+          </button>
+          <h1>Nova Vaga Remanescente</h1>
           <p>
-            Preencha as informações para registrar a disponibilidade imediata.
+            Preencha as informações para registrar uma disponibilidade e
+            acionar a fila inteligente.
           </p>
         </div>
       </section>
@@ -94,8 +155,11 @@ export default function NoShowRegistration() {
 
           <label className="no-show-registration-field">
             <span>Data da Vaga</span>
-            <div className="no-show-registration-input">
-              <input type="text" placeholder="mm/dd/yyyy" />
+            <div
+              className="no-show-registration-input no-show-registration-input--picker"
+              onClick={() => openNativePicker(vacancyDateInputRef.current)}
+            >
+              <input ref={vacancyDateInputRef} type="date" defaultValue={prefilledDate} />
               <LuCalendarDays
                 size={18}
                 className="no-show-registration-input__icon"
@@ -105,8 +169,11 @@ export default function NoShowRegistration() {
 
           <label className="no-show-registration-field">
             <span>Horário Específico</span>
-            <div className="no-show-registration-input">
-              <input type="text" placeholder="--:-- --" />
+            <div
+              className="no-show-registration-input no-show-registration-input--picker"
+              onClick={() => openNativePicker(vacancyTimeInputRef.current)}
+            >
+              <input ref={vacancyTimeInputRef} type="time" defaultValue={prefilledTime} />
               <LuClock3
                 size={18}
                 className="no-show-registration-input__icon"
@@ -116,20 +183,41 @@ export default function NoShowRegistration() {
 
           <label className="no-show-registration-field">
             <span>Tipo de Vaga</span>
-            <div className="no-show-registration-input no-show-registration-input--alert">
-              <input type="text" value="No-Show (Ausência)" readOnly />
+            <div className="no-show-registration-input no-show-registration-input--select">
+              <select defaultValue="No-show">
+                {vacancyTypes.map((vacancyType) => (
+                  <option key={vacancyType} value={vacancyType}>
+                    {vacancyType}
+                  </option>
+                ))}
+              </select>
+              <LuChevronDown size={18} />
+            </div>
+          </label>
+
+          <label className="no-show-registration-field no-show-registration-field--full">
+            <span>Tempo de Expiração da Oferta</span>
+            <div className="no-show-registration-input no-show-registration-input--select">
+              <select defaultValue="15 minutos" required>
+                {expirationOptions.map((expirationOption) => (
+                  <option key={expirationOption} value={expirationOption}>
+                    {expirationOption}
+                  </option>
+                ))}
+              </select>
+              <LuChevronDown size={18} />
             </div>
           </label>
 
           <div className="no-show-registration-actions">
             <button type="submit" className="no-show-registration-submit">
-              Cadastrar Vaga
+              Cadastrar vaga e processar fila
               <LuMoveRight size={18} />
             </button>
 
             <p>
-              A vaga será notificada imediatamente aos pacientes na lista de
-              espera.
+              Após o cadastro, a vaga será enviada para pacientes elegíveis na
+              fila da especialidade.
             </p>
           </div>
         </form>
