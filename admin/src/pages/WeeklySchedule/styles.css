@@ -178,6 +178,44 @@
   box-shadow: 0 0 0 2px rgba(0, 151, 83, 0.16);
 }
 
+.quick-filters-actions {
+  margin: -4px 0 24px;
+}
+
+.quick-filters-clear-button {
+  height: 42px;
+  padding: 0 16px;
+  border: 1px solid #d7efe4;
+  border-radius: 10px;
+  background-color: #ffffff;
+  color: #007a49;
+  font-size: 13px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.quick-filters-clear-button > svg {
+  stroke: #007a49;
+}
+
+.quick-filters-clear-button:hover:not(:disabled) {
+  background-color: #eefaf5;
+  border-color: #bfe6d3;
+}
+
+.quick-filters-clear-button:disabled {
+  border-color: #e5e7eb;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
 .schedule-legend {
   margin-top: 2px;
 }

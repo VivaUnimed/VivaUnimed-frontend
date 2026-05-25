@@ -9,7 +9,9 @@ import {
   LuChevronLeft,
   LuChevronRight,
   LuUsers,
+  LuRefreshCw,
 } from 'react-icons/lu';
+import { normalizeText } from '../../data/professionals';
 import './styles.css';
 
 const weekDays = [
@@ -56,6 +58,8 @@ const operationalEvents = [
     type: 'OCUPADO',
     patient: 'Beatriz Oliveira',
     details: 'Cardiologia - Dra. Mariana Lopes',
+    specialty: 'Cardiologia',
+    professional: 'Dra. Mariana Lopes',
     status: 'occupied',
   },
   {
@@ -65,6 +69,8 @@ const operationalEvents = [
     type: 'OCUPADO',
     patient: 'Marcos Silva',
     details: 'Ortopedia - Sala 02',
+    specialty: 'Ortopedia',
+    professional: 'Dr. Carlos Mendes',
     status: 'occupied',
   },
   {
@@ -74,6 +80,8 @@ const operationalEvents = [
     type: 'CONFIRMADA PELA FILA',
     patient: 'Ana Paula',
     details: 'Cardiologia - Dr. Ricardo Almeida',
+    specialty: 'Cardiologia',
+    professional: 'Dr. Ricardo Almeida',
     status: 'confirmed_by_queue',
   },
   {
@@ -83,6 +91,8 @@ const operationalEvents = [
     type: 'CANCELADO',
     patient: 'Atendimento cancelado',
     details: 'Horário disponível para reaproveitamento',
+    specialty: 'Ortopedia',
+    professional: 'Dra. Juliana Castro',
     status: 'cancelled',
   },
   {
@@ -92,6 +102,8 @@ const operationalEvents = [
     type: 'VAGA REMANESCENTE',
     patient: 'Aguardando aceite',
     details: 'Clínica Geral - Expira em 12 min',
+    specialty: 'Clínica Geral',
+    professional: 'Dra. Juliana Castro',
     status: 'available_vacancy',
   },
   {
@@ -101,6 +113,8 @@ const operationalEvents = [
     type: 'EXPIRADA',
     patient: 'Sem aceite no prazo',
     details: 'Dermatologia - Expirou há 8 min',
+    specialty: 'Dermatologia',
+    professional: 'Dra. Mariana Lopes',
     status: 'expired',
   },
 ];
@@ -159,26 +173,52 @@ function getStatusPresentation(status) {
   return statusPresentation[status] || statusPresentation.occupied;
 }
 
-function getAppointment(date, time) {
-  return operationalEvents.find((item) => item.date === date && item.time === time);
+function getAppointment(date, time, appointments = operationalEvents) {
+  return appointments.find((item) => item.date === date && item.time === time);
 }
 
-function getAppointmentsByDate(date) {
-  return operationalEvents.filter((item) => item.date === date);
+function getAppointmentsByDate(date, appointments = operationalEvents) {
+  return appointments.filter((item) => item.date === date);
 }
 
-function AppointmentCard({ appointment, date, time, onEmptySlotClick }) {
+function countAvailableSlots(days) {
+  return days.reduce(
+    (total, day) =>
+      total + timeSlots.filter((time) => !getAppointment(day.date, time)).length,
+    0,
+  );
+}
+
+function appointmentMatchesFilters(appointment, filters) {
+  const normalizedSpecialtyFilter = normalizeText(filters.specialtyFilter);
+  const normalizedProfessionalFilter = normalizeText(filters.professionalFilter);
+  const matchesSpecialty =
+    !normalizedSpecialtyFilter
+    || normalizeText(appointment.specialty) === normalizedSpecialtyFilter;
+  const matchesProfessional =
+    !normalizedProfessionalFilter
+    || normalizeText(appointment.professional) === normalizedProfessionalFilter;
+  const matchesStatus = !filters.statusFilter || appointment.status === filters.statusFilter;
+
+  return matchesSpecialty && matchesProfessional && matchesStatus;
+}
+
+function EmptySlotButton({ date, time, onEmptySlotClick }) {
+  return (
+    <button
+      type="button"
+      className="empty-slot"
+      aria-label={`Adicionar vaga remanescente em ${date} às ${time}`}
+      onClick={() => onEmptySlotClick(date, time)}
+    >
+      <LuCirclePlus size={24} />
+    </button>
+  );
+}
+
+function AppointmentCard({ appointment }) {
   if (!appointment) {
-    return (
-      <button
-        type="button"
-        className="empty-slot"
-        aria-label={`Adicionar vaga remanescente em ${date} às ${time}`}
-        onClick={() => onEmptySlotClick(date, time)}
-      >
-        <LuCirclePlus size={24} />
-      </button>
-    );
+    return null;
   }
 
   const presentation = getStatusPresentation(appointment.status);
@@ -203,15 +243,69 @@ function AppointmentCard({ appointment, date, time, onEmptySlotClick }) {
   );
 }
 
+function ScheduleSlotContent({
+  appointment,
+  hasAppointment,
+  showEmptySlot,
+  date,
+  time,
+  onEmptySlotClick,
+}) {
+  if (appointment) {
+    return <AppointmentCard appointment={appointment} />;
+  }
+
+  if (!hasAppointment && showEmptySlot) {
+    return (
+      <EmptySlotButton
+        date={date}
+        time={time}
+        onEmptySlotClick={onEmptySlotClick}
+      />
+    );
+  }
+
+  return null;
+}
+
 export default function WeeklySchedule() {
   const navigate = useNavigate();
   const [view, setView] = useState('week');
+  const [specialtyFilter, setSpecialtyFilter] = useState('');
+  const [professionalFilter, setProfessionalFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
 
-  const selectedDay = weekDays.find((item) => item.active);
-  const selectedDayAppointments = getAppointmentsByDate(selectedDay.date);
+  const selectedDay = weekDays.find((item) => item.active) || weekDays[0];
+  const filteredAppointments = operationalEvents.filter((appointment) =>
+    appointmentMatchesFilters(appointment, {
+      specialtyFilter,
+      professionalFilter,
+      statusFilter,
+    }),
+  );
+  const selectedDayAppointments = getAppointmentsByDate(selectedDay.date, filteredAppointments);
+  const visibleWeekDays = weekDays.filter((item) => !item.disabled);
+  const isFreeSlotsOnlyView = statusFilter === 'free' && !specialtyFilter && !professionalFilter;
+  const totalAppointments = isFreeSlotsOnlyView
+    ? view === 'day'
+      ? countAvailableSlots([selectedDay])
+      : view === 'week'
+        ? countAvailableSlots(visibleWeekDays)
+        : 0
+    : view === 'day'
+      ? selectedDayAppointments.length
+      : filteredAppointments.length;
+  const totalLabel = isFreeSlotsOnlyView
+    ? totalAppointments === 1
+      ? 'horário livre'
+      : 'horários livres'
+    : totalAppointments === 1
+      ? 'registro operacional'
+      : 'registros operacionais';
+  const canShowEmptySlots = !specialtyFilter && !professionalFilter
+    && (!statusFilter || statusFilter === 'free');
+  const hasActiveFilters = Boolean(specialtyFilter || professionalFilter || statusFilter);
 
-  const totalAppointments = view === 'day' ? selectedDayAppointments.length : operationalEvents.length;
-  const totalLabel = totalAppointments === 1 ? 'registro operacional' : 'registros operacionais';
   const periodLabel =
     view === 'month'
       ? 'Outubro, 2023'
@@ -226,6 +320,12 @@ export default function WeeklySchedule() {
         time,
       },
     });
+  };
+
+  const handleClearFilters = () => {
+    setSpecialtyFilter('');
+    setProfessionalFilter('');
+    setStatusFilter('');
   };
 
   return (
@@ -285,10 +385,14 @@ export default function WeeklySchedule() {
           <label>
             ESPECIALIDADE
             <div className="quick-filter-select">
-              <select defaultValue="">
+              <select
+                value={specialtyFilter}
+                onChange={(event) => setSpecialtyFilter(event.target.value)}
+                aria-label="Filtrar por especialidade"
+              >
                 <option value="">Todas as especialidades</option>
                 {specialtyOptions.map((specialty) => (
-                  <option key={specialty} value={specialty.toLowerCase()}>
+                  <option key={specialty} value={specialty}>
                     {specialty}
                   </option>
                 ))}
@@ -300,10 +404,14 @@ export default function WeeklySchedule() {
           <label>
             MÉDICO RESPONSÁVEL
             <div className="quick-filter-select">
-              <select defaultValue="">
+              <select
+                value={professionalFilter}
+                onChange={(event) => setProfessionalFilter(event.target.value)}
+                aria-label="Filtrar por médico responsável"
+              >
                 <option value="">Qualquer médico</option>
                 {professionalOptions.map((professional) => (
-                  <option key={professional} value={professional.toLowerCase()}>
+                  <option key={professional} value={professional}>
                     {professional}
                   </option>
                 ))}
@@ -316,9 +424,13 @@ export default function WeeklySchedule() {
           <label>
             STATUS DA VAGA
             <div className="quick-filter-select">
-              <select defaultValue="">
+              <select
+                value={statusFilter}
+                onChange={(event) => setStatusFilter(event.target.value)}
+                aria-label="Filtrar por status da vaga"
+              >
                 {statusFilterOptions.map((option) => (
-                  <option key={option.label} value={option.value}>
+                  <option key={option.value || 'all-status'} value={option.value}>
                     {option.label}
                   </option>
                 ))}
@@ -326,6 +438,18 @@ export default function WeeklySchedule() {
               <LuChevronDown size={16} />
             </div>
           </label>
+
+          <div className="quick-filters-actions">
+            <button
+              type="button"
+              className="quick-filters-clear-button"
+              onClick={handleClearFilters}
+              disabled={!hasActiveFilters}
+            >
+              <LuRefreshCw size={16} />
+              Limpar filtros
+            </button>
+          </div>
 
           <div className="schedule-legend">
             <h3>LEGENDA</h3>
@@ -373,8 +497,10 @@ export default function WeeklySchedule() {
               <div key={time} className="weekly-calendar-grid weekly-calendar-grid--day calendar-row">
                 <div className="calendar-time">{time}</div>
                 <div className="calendar-cell">
-                  <AppointmentCard
-                    appointment={getAppointment(selectedDay.date, time)}
+                  <ScheduleSlotContent
+                    appointment={getAppointment(selectedDay.date, time, filteredAppointments)}
+                    hasAppointment={Boolean(getAppointment(selectedDay.date, time))}
+                    showEmptySlot={canShowEmptySlots}
                     date={selectedDay.date}
                     time={time}
                     onEmptySlotClick={handleCreateVacancy}
@@ -415,8 +541,10 @@ export default function WeeklySchedule() {
                     className={`calendar-cell ${day.disabled ? 'calendar-cell--disabled' : ''}`}
                   >
                     {!day.disabled ? (
-                      <AppointmentCard
-                        appointment={getAppointment(day.date, time)}
+                      <ScheduleSlotContent
+                        appointment={getAppointment(day.date, time, filteredAppointments)}
+                        hasAppointment={Boolean(getAppointment(day.date, time))}
+                        showEmptySlot={canShowEmptySlots}
                         date={day.date}
                         time={time}
                         onEmptySlotClick={handleCreateVacancy}
@@ -451,7 +579,9 @@ export default function WeeklySchedule() {
 
             <div className="month-grid-body">
               {monthDays.map((day) => {
-                const dayAppointments = day.date ? getAppointmentsByDate(day.date) : [];
+                const dayAppointments = day.date
+                  ? getAppointmentsByDate(day.date, filteredAppointments)
+                  : [];
 
                 return (
                   <button
