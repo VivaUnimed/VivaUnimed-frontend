@@ -25,13 +25,24 @@ const weekDays = [
   { day: 'DOM', number: '29', date: '2023-10-29', disabled: true },
 ];
 
-const timeSlots = ['08:00', '09:00', '10:00', '11:00', '14:00', '15:00'];
+const timeSlots = [
+  '08:00',
+  '09:00',
+  '10:00',
+  '11:00',
+  '14:00',
+  '15:00',
+  '16:00',
+  '17:00',
+  '18:00',
+];
 
 const specialtyOptions = [
   'Cardiologia',
   'Ortopedia',
   'Clínica Geral',
   'Dermatologia',
+  'Pediatria',
 ];
 
 const professionalOptions = [
@@ -117,6 +128,28 @@ const operationalEvents = [
     specialty: 'Dermatologia',
     professional: 'Dra. Mariana Lopes',
     status: 'expired',
+  },
+  {
+    id: 7,
+    date: '2023-10-24',
+    time: '16:00',
+    type: 'AGUARDANDO ACEITE',
+    patient: 'Vaga remanescente',
+    details: 'Pediatria - Expira em 10 min',
+    specialty: 'Pediatria',
+    professional: 'Dr. Carlos Mendes',
+    status: 'available_vacancy',
+  },
+  {
+    id: 8,
+    date: '2023-10-26',
+    time: '17:00',
+    type: 'CONFIRMADA PELA FILA',
+    patient: 'Lucas Ferreira',
+    details: 'Dermatologia - Dra. Juliana Castro',
+    specialty: 'Dermatologia',
+    professional: 'Dra. Juliana Castro',
+    status: 'confirmed_by_queue',
   },
 ];
 
