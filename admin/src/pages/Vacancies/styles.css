@@ -51,6 +51,31 @@
   stroke: #ffffff;
 }
 
+.vacancy-feedback-banner {
+  min-height: 44px;
+  margin-bottom: 18px;
+  padding: 0 16px;
+  border: 1px solid #d9efe4;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #eefaf5 0%, #f7fcfa 100%);
+  color: #0f6b47;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 10px 26px rgba(15, 107, 71, 0.06);
+}
+
+.vacancy-feedback-banner svg {
+  stroke: #007a49;
+  flex-shrink: 0;
+}
+
+.vacancy-feedback-banner span {
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 800;
+}
+
 /* Cards de resumo */
 
 .vacancy-summary-grid {
@@ -599,6 +624,100 @@
   display: none;
 }
 
+.vacancy-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  padding: 20px;
+  background-color: rgba(18, 24, 32, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vacancy-modal {
+  width: min(100%, 520px);
+  border-radius: 24px;
+  background-color: #ffffff;
+  border: 1px solid #ece7e3;
+  box-shadow: 0 24px 48px rgba(15, 23, 42, 0.16);
+  padding: 24px;
+}
+
+.vacancy-modal__eyebrow {
+  width: fit-content;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background-color: #e8f6ef;
+  color: #0f6b47;
+  font-size: 11px;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+}
+
+.vacancy-modal h2 {
+  margin: 14px 0 0;
+  font-size: 24px;
+  line-height: 30px;
+  color: #202124;
+}
+
+.vacancy-modal__content {
+  margin-top: 18px;
+  display: grid;
+  gap: 12px;
+}
+
+.vacancy-modal__field {
+  padding: 16px 18px;
+  border-radius: 16px;
+  background-color: #fbf9f7;
+  border: 1px solid #f0ebe6;
+}
+
+.vacancy-modal__field span {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 900;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+  color: #6b7280;
+}
+
+.vacancy-modal__field strong {
+  display: block;
+  font-size: 16px;
+  line-height: 22px;
+  color: #202124;
+}
+
+.vacancy-modal__field p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 21px;
+  color: #5f6368;
+}
+
+.vacancy-modal__button {
+  min-height: 42px;
+  margin-top: 20px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 10px;
+  background-color: #008256;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
 /* Responsivo */
 
 @media (max-width: 1280px) {
@@ -662,5 +781,14 @@
 
   .generated-slots-card__header button {
     font-size: 12px;
+  }
+
+  .vacancy-modal {
+    padding: 20px 18px;
+  }
+
+  .vacancy-modal h2 {
+    font-size: 22px;
+    line-height: 28px;
   }
 }
