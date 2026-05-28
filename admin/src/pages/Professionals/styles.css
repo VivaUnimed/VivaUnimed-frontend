@@ -274,7 +274,7 @@
 
 .professionals-table th:nth-child(6),
 .professionals-table td:nth-child(6) {
-  width: 12%;
+  width: 18%;
 }
 
 .professionals-table tbody tr {
@@ -409,11 +409,20 @@
 .professional-actions button {
   height: 32px;
   padding: 0 12px;
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
+  background-color: #ffffff;
+  color: #5f6368;
   font-size: 12px;
   font-weight: 800;
   cursor: pointer;
   white-space: nowrap;
+}
+
+.professional-actions__details {
+  border-color: #d7efe4;
+  background-color: #eefaf5;
+  color: #008256;
 }
 
 .professional-actions__edit {
@@ -423,26 +432,6 @@
 }
 
 .professional-actions__edit:hover {
-  background-color: #eefaf5;
-}
-
-.professional-actions__disable {
-  border: 1px solid #f1d7d7;
-  background-color: #ffffff;
-  color: #c24141;
-}
-
-.professional-actions__disable:hover {
-  background-color: #fff1f1;
-}
-
-.professional-actions__enable {
-  border: 1px solid #d7efe4;
-  background-color: #ffffff;
-  color: #008256;
-}
-
-.professional-actions__enable:hover {
   background-color: #eefaf5;
 }
 

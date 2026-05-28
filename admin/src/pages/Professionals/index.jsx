@@ -15,14 +15,13 @@ import {
   getProfessionalUnitOptions,
   getStoredProfessionals,
   normalizeText,
-  toggleMockProfessionalStatus,
 } from '../../data/professionals';
 
 export default function Professionals() {
   const location = useLocation();
   const navigate = useNavigate();
   const feedbackMessage = location.state?.successMessage ?? '';
-  const [professionals, setProfessionals] = useState(() => getStoredProfessionals());
+  const [professionals] = useState(() => getStoredProfessionals());
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [specialtyFilter, setSpecialtyFilter] = useState('');
@@ -42,22 +41,6 @@ export default function Professionals() {
     setStatusFilter('');
     setSpecialtyFilter('');
     setUnitFilter('');
-  };
-
-  const handleToggleStatus = (professionalId) => {
-    const updatedProfessional = toggleMockProfessionalStatus(professionalId);
-
-    if (!updatedProfessional) {
-      return;
-    }
-
-    setProfessionals((currentProfessionals) =>
-      currentProfessionals.map((professional) =>
-        professional.id === updatedProfessional.id
-          ? updatedProfessional
-          : professional,
-      ),
-    );
   };
 
   const filteredProfessionals = professionals.filter((professional) => {
@@ -275,26 +258,22 @@ export default function Professionals() {
                           <div className="professional-actions">
                             <button
                               type="button"
-                              className="professional-actions__edit"
+                              className="professional-action-button professional-action-button--primary"
+                              onClick={() =>
+                                navigate(`/professionals/${professional.id}`)
+                              }
+                            >
+                              Detalhes
+                            </button>
+
+                            <button
+                              type="button"
+                              className="professional-action-button"
                               onClick={() =>
                                 navigate(`/professionals/${professional.id}/edit`)
                               }
                             >
                               Editar
-                            </button>
-
-                            <button
-                              type="button"
-                              className={
-                                professional.status === 'Ativo'
-                                  ? 'professional-actions__disable'
-                                  : 'professional-actions__enable'
-                              }
-                              onClick={() => handleToggleStatus(professional.id)}
-                            >
-                              {professional.status === 'Ativo'
-                                ? 'Desativar'
-                                : 'Ativar'}
                             </button>
                           </div>
                         </td>
