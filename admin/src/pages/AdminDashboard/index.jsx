@@ -1,108 +1,114 @@
 import {
   LuCalendarDays,
+  LuChartColumn,
   LuClipboard,
   LuTriangleAlert,
-  LuSquareCheck,
-  LuPlus,
-  LuChevronDown,
-  LuSparkles,
-  LuBuilding,
-  LuChartColumn,
 } from 'react-icons/lu';
 import './styles.css';
-import { VscGraph } from 'react-icons/vsc';
 
-const summaryCards = [
+const dashboardCards = [
   {
-    id: 1,
-    title: 'Atendimentos Hoje',
-    value: '1.284',
-    description: 'Meta diária: 50 atendimentos',
+    id: 'vacancies-today',
+    title: 'Vagas remanescentes hoje',
+    value: '12',
+    description: 'Horários identificados para reaproveitamento',
     icon: LuCalendarDays,
     variant: 'green',
-    badge: '+12%',
   },
   {
-    id: 2,
-    title: 'Taxa de Ocupação',
+    id: 'reuse-rate',
+    title: 'Taxa de aproveitamento',
     value: '84%',
-    description: '',
+    description: 'Vagas preenchidas pela fila',
     icon: LuChartColumn,
     variant: 'light-green',
   },
   {
-    id: 3,
-    title: 'No-show (Hoje)',
+    id: 'no-show-today',
+    title: 'No-show hoje',
     value: '03',
-    description: 'Taxa de falta: 7.1% da agenda',
+    description: 'Possíveis vagas a reaproveitar',
     icon: LuTriangleAlert,
     variant: 'red',
-    badge: '-3%',
+  },
+  {
+    id: 'dispatch-failures',
+    title: 'Falhas no disparo',
+    value: '03',
+    description: 'Notificações que exigem atenção',
+    icon: LuClipboard,
+    variant: 'red',
   },
 ];
 
-const priorities = [
-  {
-    id: 1,
-    title: 'Reunião de Alinhamento - Corpo Clínico',
-    time: '14:30',
-    status: 'green',
-  },
-  {
-    id: 2,
-    title: 'Auditoria de Prontuários (Digital)',
-    time: '16:00',
-    status: 'light',
-  },
-  {
-    id: 3,
-    title: 'Atualização de sistema VivaUnimed v2.4',
-    time: '22:00',
-    status: 'muted',
-  },
-];
-
-const nextSchedules = [
+const ongoingVacancies = [
   {
     id: 1,
     time: '14:30',
-    patient: 'Clara Magalhães',
-    doctor: 'Dra. Helena Costa',
-    category: 'Geral',
+    specialty: 'Cardiologia',
+    professional: 'Dr. Ricardo Almeida',
+    status: 'Aguardando aceite',
+    detail: 'Expira em 08 min',
+    statusVariant: 'pending',
+    actionLabel: 'Gerenciar',
   },
   {
     id: 2,
     time: '15:00',
-    patient: 'Roberto Alvim',
-    doctor: 'Dr. Marcos Dias',
-    category: 'Exame',
+    specialty: 'Ortopedia',
+    professional: 'Dra. Heloísa Santos',
+    status: 'Confirmada pela fila',
+    detail: 'Ana Souza',
+    statusVariant: 'confirmed',
+    actionLabel: 'Ver confirmação',
   },
   {
     id: 3,
     time: '15:45',
-    patient: 'Sônia Mendes',
-    doctor: 'Dra. Helena Costa',
-    category: 'Retorno',
+    specialty: 'Pediatria',
+    professional: 'Dr. Fábio Mello',
+    status: 'Falha no disparo',
+    detail: 'Requer atenção',
+    statusVariant: 'alert',
+    actionLabel: 'Detalhes',
   },
 ];
 
-export default function StrategicDashboard() {
+function getCurrentDateLabel() {
+  const formattedDate = new Date().toLocaleDateString('pt-BR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+
+  const [day, month, year] = formattedDate.split(' de ');
+
+  if (!day || !month || !year) {
+    return formattedDate;
+  }
+
+  return `${day} de ${month.charAt(0).toUpperCase()}${month.slice(1)}, ${year}`;
+}
+
+export default function AdminDashboard() {
+  const currentDateLabel = getCurrentDateLabel();
+
   return (
     <main className="strategic-dashboard-page">
       <section className="strategic-dashboard-header">
         <div>
           <h1>Dashboard</h1>
-          <p>Visão consolidada da operação VivaUnimed em tempo real.</p>
+          <p>Visão consolidada da operação de vagas remanescentes em tempo real.</p>
         </div>
 
         <div className="strategic-dashboard-date">
           <LuCalendarDays size={14} />
-          <span>24 de Maio, 2024</span>
+          <span>{currentDateLabel}</span>
         </div>
       </section>
 
       <section className="strategic-summary-grid">
-        {summaryCards.map((card) => {
+        {dashboardCards.map((card) => {
           const Icon = card.icon;
 
           return (
@@ -114,12 +120,6 @@ export default function StrategicDashboard() {
                 <div className="strategic-summary-card__icon">
                   <Icon size={20} />
                 </div>
-
-                {card.badge && (
-                  <span className="strategic-summary-card__badge">
-                    {card.badge}
-                  </span>
-                )}
               </div>
 
               <h2>{card.title}</h2>
@@ -131,22 +131,37 @@ export default function StrategicDashboard() {
       </section>
 
       <section className="strategic-bottom-grid">
-
         <div className="schedules-card">
           <div className="schedules-card__header">
-            <h2>Próximos Horários</h2>
-            <p>Fila de espera ativa para hoje</p>
+            <h2>Vagas em andamento</h2>
+            <p>Horários aguardando aceite ou confirmação pela fila inteligente</p>
           </div>
 
           <div className="schedules-list">
-            {nextSchedules.map((item) => (
-              <div key={item.id} className="schedule-item">
-                <div className="schedule-item__time">{item.time}</div>
-                <div className="schedule-item__info">
-                  <strong>{item.patient}</strong>
-                  <span>
-                    {item.doctor} • {item.category}
-                  </span>
+            {ongoingVacancies.map((vacancy) => (
+              <div key={vacancy.id} className="schedule-item">
+                <div className="schedule-item__time">{vacancy.time}</div>
+
+                <div className="schedule-item__content">
+                  <div className="schedule-item__info">
+                    <strong>{vacancy.specialty}</strong>
+                    <span>{vacancy.professional}</span>
+
+                    <div className="schedule-item__status-row">
+                      <span
+                        className={`schedule-item__status schedule-item__status--${vacancy.statusVariant}`}
+                      >
+                        {vacancy.status}
+                      </span>
+                      <span className="schedule-item__detail">{vacancy.detail}</span>
+                    </div>
+                  </div>
+
+                  <div className="schedule-item__meta">
+                    <button type="button" className="schedule-item__action">
+                      {vacancy.actionLabel}
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
