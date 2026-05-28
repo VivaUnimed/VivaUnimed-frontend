@@ -15,6 +15,8 @@ import NoShowRegistration from '../pages/NoShowRegistration';
 import CreatePatient from '../pages/CreatePatient';
 import PatientDetails from '../pages/PatientDetails';
 import EditPatient from '../pages/EditPatient';
+import ProfessionalDetails from '../pages/ProfessionalDetails';
+import VacancyDetails from '../pages/VacancyDetails';
 
 export const RoutesApp = () => {
   return (
@@ -30,10 +32,12 @@ export const RoutesApp = () => {
           <Route path="/" element={<AdminDashboard/>} />
           <Route path="/professionals" element={<Professionals />} />
           <Route path="/professionals/new" element={<CreateProfessional />} />
+          <Route path="/professionals/:professionalId" element={<ProfessionalDetails />} />
           <Route path="/professionals/:professionalId/edit" element={<EditProfessional />} />
           <Route path="/specialties" element={<Specialties />} />
           <Route path="/weeklySchedule" element={<WeeklySchedule/>} />
           <Route path="/vacancies" element={<Vacancies/>} />
+          <Route path="/vacancies/:vacancyId" element={<VacancyDetails />} />
           <Route path="/vacancies/new" element={<NoShowRegistration/>} />
           <Route path="/patients" element={<Patients/>} />
           <Route path="/patients/new" element={<CreatePatient />} />

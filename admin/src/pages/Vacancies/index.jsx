@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import {
@@ -15,6 +15,12 @@ import {
   LuSend,
   LuFilter,
 } from 'react-icons/lu';
+
+import {
+  getSlotAction,
+  loadVacancies,
+  persistVacancies,
+} from '../../data/vacancies';
 
 import './styles.css';
 
@@ -78,159 +84,42 @@ const dispatchStatusOptions = [
   { value: 'error', label: 'Falha no disparo' },
 ];
 
-const generatedSlots = [
-  {
-    id: 1,
-    time: '14:30',
-    date: 'Hoje, 24 Out',
-    specialty: 'Cardiologia',
-    professional: 'Dr. Ricardo Almeida',
-    queuePatients: 12,
-    vacancyStatus: 'waiting-acceptance',
-    vacancyStatusText: 'Aguardando aceite',
-    dispatchStatus: 'success',
-    dispatchStatusText: 'Enviado com sucesso',
-    expiration: 'Expira em 08 min',
-    confirmedPatient: null,
-  },
-  {
-    id: 2,
-    time: '15:15',
-    date: 'Hoje, 24 Out',
-    specialty: 'Pediatria',
-    professional: 'Dr. Fábio Mello',
-    queuePatients: 9,
-    vacancyStatus: 'waiting-acceptance',
-    vacancyStatusText: 'Aguardando aceite',
-    dispatchStatus: 'error',
-    dispatchStatusText: 'Falha no disparo',
-    expiration: 'Falha antes do aceite',
-    confirmedPatient: null,
-  },
-  {
-    id: 3,
-    time: '16:45',
-    date: 'Hoje, 24 Out',
-    specialty: 'Dermatologia',
-    professional: 'Dra. Cláudia Lima',
-    queuePatients: 0,
-    vacancyStatus: 'open',
-    vacancyStatusText: 'Aberta',
-    dispatchStatus: 'error',
-    dispatchStatusText: 'Falha no disparo',
-    expiration: 'Falha antes do aceite',
-    confirmedPatient: null,
-  },
-  {
-    id: 4,
-    time: '09:00',
-    date: 'Amanhã, 25 Out',
-    specialty: 'Endocrinologia',
-    professional: 'Dr. Rafael Tavares',
-    queuePatients: 6,
-    vacancyStatus: 'open',
-    vacancyStatusText: 'Aberta',
-    dispatchStatus: 'error',
-    dispatchStatusText: 'Falha no disparo',
-    expiration: 'Falha antes do aceite',
-    confirmedPatient: null,
-  },
-  {
-    id: 5,
-    time: '11:20',
-    date: 'Amanhã, 25 Out',
-    specialty: 'Ginecologia',
-    professional: 'Dra. Marina Costa',
-    queuePatients: 18,
-    vacancyStatus: 'confirmed',
-    vacancyStatusText: 'Confirmada',
-    dispatchStatus: 'success',
-    dispatchStatusText: 'Enviado com sucesso',
-    expiration: 'Finalizada',
-    confirmedPatient: 'Ana Souza',
-  },
-  {
-    id: 6,
-    time: '13:10',
-    date: 'Amanhã, 25 Out',
-    specialty: 'Neurologia',
-    professional: 'Dra. Isabela Moura',
-    queuePatients: 14,
-    vacancyStatus: 'expired',
-    vacancyStatusText: 'Expirada',
-    dispatchStatus: 'success',
-    dispatchStatusText: 'Enviado com sucesso',
-    expiration: 'Expirou há 12 min',
-    confirmedPatient: null,
-  },
-  {
-    id: 7,
-    time: '15:40',
-    date: 'Amanhã, 25 Out',
-    specialty: 'Otorrinolaringologia',
-    professional: 'Dr. Gustavo Nunes',
-    queuePatients: 4,
-    vacancyStatus: 'cancelled',
-    vacancyStatusText: 'Cancelada',
-    dispatchStatus: 'success',
-    dispatchStatusText: 'Enviado com sucesso',
-    expiration: 'Cancelada pela unidade',
-    confirmedPatient: null,
-  },
-];
-
 function formatSummaryValue(value) {
   return String(value).padStart(2, '0');
 }
 
-function getSlotAction(slot) {
-  if (slot.vacancyStatus === 'confirmed') {
-    return {
-      label: 'Ver confirmação',
-      variant: 'secondary',
-    };
-  }
-
-  if (slot.vacancyStatus === 'expired' || slot.vacancyStatus === 'cancelled') {
-    return {
-      label: 'Detalhes',
-      variant: 'secondary',
-    };
-  }
-
-  if (slot.dispatchStatus === 'error') {
-    return slot.queuePatients > 0
-      ? {
-          label: 'Tentar novamente',
-          variant: 'primary',
-        }
-      : {
-          label: 'Ver fila',
-          variant: 'secondary',
-        };
-  }
-
-  if (slot.vacancyStatus === 'waiting-acceptance' && slot.dispatchStatus === 'success') {
-    return {
-      label: 'Gerenciar',
-      variant: 'primary',
-    };
-  }
-
+function createRetryHistoryEntry(slot) {
   return {
-    label: 'Detalhes',
-    variant: 'secondary',
+    id: `${slot.id}-retry-${Date.now()}`,
+    title: 'Disparo reenviado com sucesso',
+    description: 'Nova tentativa simulada a partir da tela de vagas.',
+    timestamp: 'Agora',
   };
 }
 
 export default function Vacancies() {
   const navigate = useNavigate();
+  const [slots, setSlots] = useState(loadVacancies);
   const [searchTerm, setSearchTerm] = useState('');
   const [vacancyStatusFilter, setVacancyStatusFilter] = useState('');
   const [dispatchStatusFilter, setDispatchStatusFilter] = useState('');
   const [dateFilter, setDateFilter] = useState('');
+  const [feedbackMessage, setFeedbackMessage] = useState('');
+  const [queueModalSlot, setQueueModalSlot] = useState(null);
 
-  const dateOptions = [...new Set(generatedSlots.map((slot) => slot.date))];
+  useEffect(() => {
+    if (!feedbackMessage) {
+      return undefined;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setFeedbackMessage('');
+    }, 3500);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [feedbackMessage]);
+
+  const dateOptions = [...new Set(slots.map((slot) => slot.date))];
   const normalizedSearchTerm = searchTerm.trim().toLowerCase();
   const hasActiveFilters = Boolean(
     normalizedSearchTerm
@@ -239,7 +128,7 @@ export default function Vacancies() {
     || dateFilter
   );
 
-  const filteredSlots = generatedSlots.filter((slot) => {
+  const filteredSlots = slots.filter((slot) => {
     const matchesSearch = !normalizedSearchTerm
       || slot.specialty.toLowerCase().includes(normalizedSearchTerm)
       || slot.professional.toLowerCase().includes(normalizedSearchTerm)
@@ -268,6 +157,60 @@ export default function Vacancies() {
     setDateFilter('');
   };
 
+  const updateSlots = (updater) => {
+    setSlots((currentSlots) => {
+      const nextSlots = typeof updater === 'function'
+        ? updater(currentSlots)
+        : updater;
+
+      persistVacancies(nextSlots);
+      return nextSlots;
+    });
+  };
+
+  const handleRetryDispatch = (slot) => {
+    updateSlots((currentSlots) =>
+      currentSlots.map((currentSlot) => {
+        if (currentSlot.id !== slot.id) {
+          return currentSlot;
+        }
+
+        return {
+          ...currentSlot,
+          dispatchStatus: 'success',
+          dispatchStatusText: 'Enviado com sucesso',
+          vacancyStatus: 'waiting-acceptance',
+          vacancyStatusText: 'Aguardando aceite',
+          expiration: 'Expira em 15 min',
+          finalDescription: '',
+          history: [...currentSlot.history, createRetryHistoryEntry(currentSlot)],
+        };
+      }),
+    );
+
+    setFeedbackMessage('Disparo reenviado com sucesso.');
+  };
+
+  const handleSlotAction = (slot) => {
+    const action = getSlotAction(slot);
+
+    switch (action.label) {
+      case 'Gerenciar':
+      case 'Ver confirmação':
+      case 'Detalhes':
+        navigate(`/vacancies/${slot.id}`);
+        break;
+      case 'Tentar novamente':
+        handleRetryDispatch(slot);
+        break;
+      case 'Ver fila':
+        setQueueModalSlot(slot);
+        break;
+      default:
+        break;
+    }
+  };
+
   return (
     <main className="idle-slots-page">
       <section className="idle-slots-header">
@@ -293,10 +236,17 @@ export default function Vacancies() {
         </button>
       </section>
 
+      {feedbackMessage ? (
+        <div className="vacancy-feedback-banner" role="status">
+          <LuCircleCheck size={18} />
+          <span>{feedbackMessage}</span>
+        </div>
+      ) : null}
+
       <section className="vacancy-summary-grid">
         {summaryCards.map((card) => {
           const Icon = card.icon;
-          const value = filteredSlots.filter(card.matches).length;
+          const value = slots.filter(card.matches).length;
 
           return (
             <article
@@ -395,7 +345,6 @@ export default function Vacancies() {
                 <LuCalendarCheck size={22} />
                 <h2>Vagas Remanescentes</h2>
               </div>
-
             </div>
 
             <div className="generated-slots-table-wrapper">
@@ -434,7 +383,9 @@ export default function Vacancies() {
                             <div className="queue-patients">
                               <LuUsers size={15} />
                               <strong>{slot.queuePatients}</strong>
-                              <span>pacientes</span>
+                              <span>
+                                {slot.queuePatients === 1 ? 'paciente' : 'pacientes'}
+                              </span>
                             </div>
                           </td>
 
@@ -475,6 +426,7 @@ export default function Vacancies() {
                               type="button"
                               className={`slot-action slot-action--${action.variant}`}
                               disabled={Boolean(action.disabled)}
+                              onClick={() => handleSlotAction(slot)}
                             >
                               {action.label}
                             </button>
@@ -498,6 +450,52 @@ export default function Vacancies() {
           </div>
         </section>
       </section>
+
+      {queueModalSlot ? (
+        <div
+          className="vacancy-modal-overlay"
+          role="presentation"
+          onClick={() => setQueueModalSlot(null)}
+        >
+          <div
+            className="vacancy-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="queue-modal-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <span className="vacancy-modal__eyebrow">Fila da especialidade</span>
+            <h2 id="queue-modal-title">Fila da especialidade</h2>
+
+            <div className="vacancy-modal__content">
+              <article className="vacancy-modal__field">
+                <span>Especialidade</span>
+                <strong>{queueModalSlot.specialty}</strong>
+              </article>
+
+              <article className="vacancy-modal__field">
+                <span>Mensagem</span>
+                <p>Nenhum paciente elegível encontrado para esta especialidade.</p>
+              </article>
+
+              <article className="vacancy-modal__field">
+                <span>Orientação</span>
+                <p>
+                  Cadastre pacientes ou atualize os interesses na Gestão de Pacientes.
+                </p>
+              </article>
+            </div>
+
+            <button
+              type="button"
+              className="vacancy-modal__button"
+              onClick={() => setQueueModalSlot(null)}
+            >
+              Fechar
+            </button>
+          </div>
+        </div>
+      ) : null}
     </main>
   );
 }
