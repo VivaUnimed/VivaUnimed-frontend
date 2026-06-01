@@ -1,7 +1,7 @@
 import "./styles.css";
 import AppNav from "../../components/layouts/AppNav";
 import AppLogo from "../../components/layouts/AppLogo";
-import { useState } from "react";
+import { createElement, useState } from "react";
 
 import {
   Search,
@@ -97,7 +97,7 @@ export default function Interesses() {
                         isSelected ? "green" : "light"
                       }`}
                     >
-                      <Icon size={18} />
+                      {createElement(Icon, { size: 18 })}
                     </div>
 
                     {isSelected ? (

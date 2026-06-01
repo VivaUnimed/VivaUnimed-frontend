@@ -631,3 +631,159 @@
   color: #0a8f4c;
 }
 
+/* TABLET */
+@media (min-width: 768px) {
+  .alertas-page {
+    padding: 24px;
+  }
+
+  .alertas-card {
+    max-width: 520px;
+    min-height: calc(100vh - 48px);
+    max-height: 820px;
+    border: 1px solid #d9dee3;
+    border-radius: 24px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+  }
+
+  .alertas-header {
+    padding: 28px 32px 18px;
+  }
+
+  .alertas-search-btn {
+    right: 32px;
+  }
+
+  .alertas-content {
+    padding: 224px 32px 32px;
+    overflow-y: auto;
+  }
+
+  .alerta-hero {
+    top: 142px;
+    width: min(calc(100% - 88px), 456px);
+  }
+
+  .alertas-section-title h3 {
+    font-size: 28px;
+  }
+
+  .alerta-item,
+  .vaga-card {
+    padding: 18px;
+  }
+}
+
+/* DESKTOP */
+@media (min-width: 1024px) {
+  .alertas-page {
+    padding: 40px;
+  }
+
+  .alertas-card {
+    max-width: 720px;
+    min-height: calc(100vh - 80px);
+    max-height: 860px;
+  }
+
+  .alertas-header {
+    padding: 34px 56px 20px;
+  }
+
+  .alertas-search-btn {
+    right: 56px;
+  }
+
+  .alertas-content {
+    padding: 244px 56px 40px;
+  }
+
+  .alerta-hero {
+    top: 158px;
+    width: min(calc(100% - 160px), 608px);
+    padding: 22px;
+  }
+
+  .alerta-hero h1 {
+    font-size: 34px;
+  }
+
+  .alerta-hero p {
+    max-width: 360px;
+    font-size: 14px;
+  }
+
+  .alertas-tabs {
+    margin-bottom: 22px;
+  }
+
+  .alertas-tab {
+    font-size: 12px;
+  }
+
+  .alertas-list {
+    gap: 16px;
+  }
+
+  .alerta-item,
+  .vaga-card {
+    padding: 20px;
+  }
+
+  .tempo-real-title h2 {
+    font-size: 34px;
+  }
+}
+
+/* DESKTOP MAIOR */
+@media (min-width: 1280px) {
+  .alertas-card {
+    max-width: 840px;
+  }
+
+  .alertas-content {
+    padding: 244px 72px 44px;
+  }
+
+  .alerta-hero {
+    width: min(calc(100% - 240px), 696px);
+  }
+}
+
+/* DESKTOP FULL PAGE */
+@media (min-width: 768px) {
+  .alertas-page {
+    align-items: stretch;
+    justify-content: flex-start;
+    padding: 0;
+  }
+
+  .alertas-card {
+    max-width: none;
+    min-height: 100vh;
+    max-height: none;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    padding-left: 136px;
+  }
+
+  .alerta-hero {
+    left: calc(136px + ((100vw - 136px) / 2));
+    width: min(calc(100vw - 184px), 608px);
+  }
+}
+
+@media (min-width: 1280px) {
+  .alertas-card {
+    max-width: none;
+    padding-left: 156px;
+  }
+
+  .alerta-hero {
+    left: calc(156px + ((100vw - 156px) / 2));
+    width: min(calc(100vw - 272px), 696px);
+  }
+}
+

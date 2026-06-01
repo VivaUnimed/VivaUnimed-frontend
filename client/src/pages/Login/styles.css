@@ -191,3 +191,32 @@
     padding: 0 72px 48px;
   }
 }
+
+/* DESKTOP FULL PAGE */
+@media (min-width: 768px) {
+  .login-paciente-page {
+    align-items: stretch;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .login-paciente-card {
+    max-width: none;
+    min-height: 100vh;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .login-paciente-content {
+    max-width: 720px;
+    width: 100%;
+    margin: 0 auto;
+  }
+}
+
+@media (min-width: 1280px) {
+  .login-paciente-card {
+    max-width: none;
+  }
+}
