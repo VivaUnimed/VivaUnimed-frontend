@@ -53,6 +53,7 @@ const statusFilterOptions = [
 ];
 
 const weekdayLabels = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
+const workdayLabels = ['SEG', 'TER', 'QUA', 'QUI', 'SEX'];
 
 function capitalizeText(text) {
   if (!text) {
@@ -106,6 +107,12 @@ function addMonths(date, amount) {
   return targetMonth;
 }
 
+function isWeekend(date) {
+  const dayOfWeek = getCalendarDate(date).getDay();
+
+  return dayOfWeek === 0 || dayOfWeek === 6;
+}
+
 function getStartOfWeek(date) {
   const normalizedDate = getCalendarDate(date);
   const dayOfWeek = normalizedDate.getDay();
@@ -136,7 +143,7 @@ function formatMonthTitle(date) {
 
 function formatWeekPeriod(date) {
   const startOfWeek = getStartOfWeek(date);
-  const endOfWeek = addDays(startOfWeek, 6);
+  const endOfWeek = addDays(startOfWeek, 4);
   const sameMonth = startOfWeek.getMonth() === endOfWeek.getMonth()
     && startOfWeek.getFullYear() === endOfWeek.getFullYear();
   const sameYear = startOfWeek.getFullYear() === endOfWeek.getFullYear();
@@ -152,21 +159,24 @@ function formatWeekPeriod(date) {
   return `${startOfWeek.getDate()} de ${getMonthName(startOfWeek)}, ${startOfWeek.getFullYear()} - ${endOfWeek.getDate()} de ${getMonthName(endOfWeek)}, ${endOfWeek.getFullYear()}`;
 }
 
+function getDaySummary(date, isActive = false) {
+  const normalizedDate = getCalendarDate(date);
+
+  return {
+    day: weekdayLabels[normalizedDate.getDay()],
+    number: String(normalizedDate.getDate()),
+    date: formatDateKey(normalizedDate),
+    active: isActive,
+  };
+}
+
 function getWeekDays(currentDate) {
   const startOfWeek = getStartOfWeek(currentDate);
 
-  return Array.from({ length: 7 }, (_, index) => {
+  return Array.from({ length: 5 }, (_, index) => {
     const date = addDays(startOfWeek, index);
-    const dayOfWeek = date.getDay();
-    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
-    return {
-      day: weekdayLabels[dayOfWeek],
-      number: String(date.getDate()),
-      date: formatDateKey(date),
-      active: isSameDate(date, currentDate),
-      disabled: isWeekend,
-    };
+    return getDaySummary(date, isSameDate(date, currentDate));
   });
 }
 
@@ -183,38 +193,62 @@ function getMonthDays(currentDate) {
     0,
     12,
   ).getDate();
-  const leadingEmptyDays = firstDayOfMonth.getDay();
-  const totalCells = Math.ceil((leadingEmptyDays + daysInMonth) / 7) * 7;
+  const lastDayOfMonth = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth(),
+    daysInMonth,
+    12,
+  );
 
-  return Array.from({ length: totalCells }, (_, index) => {
-    const dayNumber = index - leadingEmptyDays + 1;
-    const isCurrentMonth = dayNumber >= 1 && dayNumber <= daysInMonth;
+  let firstVisibleDate = firstDayOfMonth;
+  while (isWeekend(firstVisibleDate) && firstVisibleDate <= lastDayOfMonth) {
+    firstVisibleDate = addDays(firstVisibleDate, 1);
+  }
+
+  let lastVisibleDate = lastDayOfMonth;
+  while (isWeekend(lastVisibleDate) && lastVisibleDate >= firstDayOfMonth) {
+    lastVisibleDate = addDays(lastVisibleDate, -1);
+  }
+
+  const startCursor = getStartOfWeek(firstVisibleDate);
+  const endCursor = addDays(getStartOfWeek(lastVisibleDate), 4);
+  const monthDays = [];
+  let index = 0;
+
+  for (
+    let cursor = startCursor;
+    cursor <= endCursor;
+    cursor = addDays(cursor, 1)
+  ) {
+    if (isWeekend(cursor)) {
+      continue;
+    }
+
+    const isCurrentMonth = cursor.getMonth() === currentDate.getMonth()
+      && cursor.getFullYear() === currentDate.getFullYear();
 
     if (!isCurrentMonth) {
-      return {
+      monthDays.push({
         id: `month-empty-${currentDate.getFullYear()}-${currentDate.getMonth()}-${index}`,
         number: '',
         date: null,
         muted: true,
         active: false,
-      };
+      });
+    } else {
+      monthDays.push({
+        id: formatDateKey(cursor),
+        number: String(cursor.getDate()),
+        date: formatDateKey(cursor),
+        muted: false,
+        active: isSameDate(cursor, currentDate),
+      });
     }
 
-    const date = new Date(
-      currentDate.getFullYear(),
-      currentDate.getMonth(),
-      dayNumber,
-      12,
-    );
+    index += 1;
+  }
 
-    return {
-      id: formatDateKey(date),
-      number: String(dayNumber),
-      date: formatDateKey(date),
-      muted: false,
-      active: isSameDate(date, currentDate),
-    };
-  });
+  return monthDays;
 }
 
 function buildOperationalEvents(referenceDate) {
@@ -574,9 +608,9 @@ export default function WeeklySchedule() {
   const [selectedAppointment, setSelectedAppointment] = useState(null);
 
   const operationalEvents = buildOperationalEvents(referenceDate);
+  const currentDay = getDaySummary(currentDate, true);
   const weekDays = getWeekDays(currentDate);
   const monthDays = getMonthDays(currentDate);
-  const selectedDay = weekDays.find((item) => item.active) || weekDays[0];
   const filteredAppointments = operationalEvents.filter((appointment) =>
     appointmentMatchesFilters(appointment, {
       specialtyFilter,
@@ -584,14 +618,13 @@ export default function WeeklySchedule() {
       statusFilter,
     }),
   );
-  const selectedDayAppointments = getAppointmentsByDate(selectedDay.date, filteredAppointments);
-  const visibleWeekDays = weekDays.filter((item) => !item.disabled);
+  const selectedDayAppointments = getAppointmentsByDate(currentDay.date, filteredAppointments);
   const visibleMonthDates = new Set(
     monthDays
       .filter((item) => item.date)
       .map((item) => item.date),
   );
-  const visibleWeekDates = new Set(visibleWeekDays.map((item) => item.date));
+  const visibleWeekDates = new Set(weekDays.map((item) => item.date));
   const weekAppointments = filteredAppointments.filter((appointment) =>
     visibleWeekDates.has(appointment.date),
   );
@@ -601,9 +634,9 @@ export default function WeeklySchedule() {
   const isFreeSlotsOnlyView = statusFilter === 'free' && !specialtyFilter && !professionalFilter;
   const totalAppointments = isFreeSlotsOnlyView
     ? view === 'day'
-      ? countAvailableSlots([selectedDay], operationalEvents)
+      ? countAvailableSlots([currentDay], operationalEvents)
       : view === 'week'
-        ? countAvailableSlots(visibleWeekDays, operationalEvents)
+        ? countAvailableSlots(weekDays, operationalEvents)
         : 0
     : view === 'day'
       ? selectedDayAppointments.length
@@ -848,8 +881,8 @@ export default function WeeklySchedule() {
                 <LuClock size={24} />
               </div>
               <div className="calendar-day-header calendar-day-header--active">
-                <span>{selectedDay.day}</span>
-                <strong>{selectedDay.number}</strong>
+                <span>{currentDay.day}</span>
+                <strong>{currentDay.number}</strong>
               </div>
             </div>
 
@@ -858,10 +891,10 @@ export default function WeeklySchedule() {
                 <div className="calendar-time">{time}</div>
                 <div className="calendar-cell">
                   <ScheduleSlotContent
-                    appointment={getAppointment(selectedDay.date, time, filteredAppointments)}
-                    hasAppointment={Boolean(getAppointment(selectedDay.date, time, operationalEvents))}
+                    appointment={getAppointment(currentDay.date, time, filteredAppointments)}
+                    hasAppointment={Boolean(getAppointment(currentDay.date, time, operationalEvents))}
                     showEmptySlot={canShowEmptySlots}
-                    date={selectedDay.date}
+                    date={currentDay.date}
                     time={time}
                     onEmptySlotClick={handleCreateVacancy}
                     onOpenDetails={handleOpenDetails}
@@ -882,9 +915,7 @@ export default function WeeklySchedule() {
               {weekDays.map((item) => (
                 <div
                   key={item.date}
-                  className={`calendar-day-header ${item.active ? 'calendar-day-header--active' : ''} ${
-                    item.disabled ? 'calendar-day-header--disabled' : ''
-                  }`}
+                  className={`calendar-day-header ${item.active ? 'calendar-day-header--active' : ''}`}
                 >
                   <span>{item.day}</span>
                   <strong>{item.number}</strong>
@@ -903,21 +934,17 @@ export default function WeeklySchedule() {
                     {weekDays.map((day) => (
                       <div
                         key={`${day.date}-${time}`}
-                        className={`calendar-cell ${day.disabled ? 'calendar-cell--disabled' : ''} ${
-                          isLastRow ? 'calendar-cell--last-row' : ''
-                        }`}
+                        className={`calendar-cell ${isLastRow ? 'calendar-cell--last-row' : ''}`}
                       >
-                        {!day.disabled ? (
-                          <ScheduleSlotContent
-                            appointment={getAppointment(day.date, time, filteredAppointments)}
-                            hasAppointment={Boolean(getAppointment(day.date, time, operationalEvents))}
-                            showEmptySlot={canShowEmptySlots}
-                            date={day.date}
-                            time={time}
-                            onEmptySlotClick={handleCreateVacancy}
-                            onOpenDetails={handleOpenDetails}
-                          />
-                        ) : null}
+                        <ScheduleSlotContent
+                          appointment={getAppointment(day.date, time, filteredAppointments)}
+                          hasAppointment={Boolean(getAppointment(day.date, time, operationalEvents))}
+                          showEmptySlot={canShowEmptySlots}
+                          date={day.date}
+                          time={time}
+                          onEmptySlotClick={handleCreateVacancy}
+                          onOpenDetails={handleOpenDetails}
+                        />
                       </div>
                     ))}
                   </React.Fragment>
@@ -952,7 +979,7 @@ export default function WeeklySchedule() {
             </div>
 
             <div className="month-grid-header">
-              {['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'].map((day) => (
+              {workdayLabels.map((day) => (
                 <div key={day}>{day}</div>
               ))}
             </div>
