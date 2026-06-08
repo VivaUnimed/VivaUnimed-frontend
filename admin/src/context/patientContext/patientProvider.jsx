@@ -51,34 +51,109 @@ export default function PatientProvider({ children }) {
     );
   }, [patientState.patients]);
 
+  const getPatients = () => {
+    patientDispatch({ type: patientTypes.GET_ALL_PATIENTS_REQUEST });
+
+    try {
+      const patients = patientState.patients;
+
+      patientDispatch({
+        type: patientTypes.GET_ALL_PATIENTS_SUCCESS,
+        payload: { patients },
+      });
+
+      return patients;
+    } catch (error) {
+      patientDispatch({
+        type: patientTypes.GET_ALL_PATIENTS_FAILURE,
+        payload: { error: error.message },
+      });
+
+      return [];
+    }
+  };
+
   const createPatient = (newPatient) => {
-    const patient = buildPatientFromForm(newPatient, patientState.patients);
+    patientDispatch({ type: patientTypes.CREATE_PATIENT_REQUEST });
 
-    patientDispatch({
-      type: patientTypes.CREATE_PATIENT,
-      payload: { patient },
-    });
+    try {
+      const patient = buildPatientFromForm(newPatient, patientState.patients);
 
-    return patient;
+      patientDispatch({
+        type: patientTypes.CREATE_PATIENT_SUCCESS,
+        payload: { patient },
+      });
+
+      return patient;
+    } catch (error) {
+      patientDispatch({
+        type: patientTypes.CREATE_PATIENT_FAILURE,
+        payload: { error: error.message },
+      });
+
+      return null;
+    }
   };
 
   const updatePatient = (patientId, updatedPatientData) => {
-    const currentPatient = patientState.patients.find(
-      (patient) => String(patient.id) === String(patientId),
-    );
+    patientDispatch({ type: patientTypes.UPDATE_PATIENT_REQUEST });
 
-    if (!currentPatient) {
+    try {
+      const currentPatient = patientState.patients.find(
+        (patient) => String(patient.id) === String(patientId),
+      );
+
+      if (!currentPatient) {
+        throw new Error('Paciente nao encontrado.');
+      }
+
+      const patient = buildUpdatedPatientFromForm(
+        updatedPatientData,
+        currentPatient,
+      );
+
+      patientDispatch({
+        type: patientTypes.UPDATE_PATIENT_SUCCESS,
+        payload: { patient },
+      });
+
+      return patient;
+    } catch (error) {
+      patientDispatch({
+        type: patientTypes.UPDATE_PATIENT_FAILURE,
+        payload: { error: error.message },
+      });
+
       return null;
     }
+  };
 
-    const patient = buildUpdatedPatientFromForm(updatedPatientData, currentPatient);
+  const deletePatient = (patientId) => {
+    patientDispatch({ type: patientTypes.DELETE_PATIENT_REQUEST });
 
-    patientDispatch({
-      type: patientTypes.UPDATE_PATIENT,
-      payload: { patient },
-    });
+    try {
+      const currentPatient = patientState.patients.find(
+        (patient) => String(patient.id) === String(patientId),
+      );
 
-    return patient;
+      if (!currentPatient) {
+        throw new Error('Paciente nao encontrado.');
+      }
+
+      patientDispatch({
+        type: patientTypes.DELETE_PATIENT_SUCCESS,
+        payload: { id: patientId },
+      });
+
+      return patientId;
+    } catch (error) {
+      patientDispatch({
+        type: patientTypes.DELETE_PATIENT_FAILURE,
+        payload: { error: error.message },
+      });
+
+      return null;
+    }
   };
 
   return (
@@ -86,8 +161,10 @@ export default function PatientProvider({ children }) {
       value={{
         patientState,
         patientDispatch,
+        getPatients,
         createPatient,
         updatePatient,
+        deletePatient,
       }}
     >
       {children}

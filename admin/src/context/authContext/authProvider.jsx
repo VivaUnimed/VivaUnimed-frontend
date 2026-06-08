@@ -42,7 +42,9 @@ export default function AuthProvider({ children }) {
     try {
       await authApi.signup(userCredentials, authDispatch);
       navigate('/login');
-    } catch {}
+    } catch (error) {
+      return error;
+    }
   };
 
   const requestPasswordReset = async (email) => {
