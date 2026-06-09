@@ -1,4 +1,3 @@
-import { professionalInitialState } from './professionalInitialState';
 import { professionalTypes } from './professionalTypes';
 
 export const professionalReducer = (state, action) => {

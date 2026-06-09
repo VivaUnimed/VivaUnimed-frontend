@@ -42,7 +42,9 @@ export default function AuthProvider({ children }) {
     try {
       await authApi.signup(userCredentials, authDispatch);
       navigate('/login');
-    } catch {}
+    } catch (error) {
+      return error;
+    }
   };
 
   const requestPasswordReset = async (email) => {
@@ -53,6 +55,11 @@ export default function AuthProvider({ children }) {
     return await authApi.confirmPasswordReset(resetData, authDispatch);
   };
 
+  const logout = async () => {
+    await authApi.logout(authDispatch);
+    navigate('/login', { replace: true });
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -60,6 +67,7 @@ export default function AuthProvider({ children }) {
         authDispatch,
         login,
         signup,
+        logout,
         requestPasswordReset,
         confirmPasswordReset,
       }}

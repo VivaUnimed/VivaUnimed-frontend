@@ -59,7 +59,7 @@ export default function Sidebar({ isHidden = false }) {
       </div>
 
       <div className="sidebar__bottom">
-        <NavLink to="/configuracoes" className="sidebar__link">
+        <NavLink to="/settings" className="sidebar__link">
           <LuSettings className="sidebar__icon" />
           <span>Configurações</span>
         </NavLink>

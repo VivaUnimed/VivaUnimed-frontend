@@ -1,5 +1,7 @@
+import { defaultProfessionals } from '../../data/professionals';
+
 export const professionalInitialState = {
-  professionals: [],
+  professionals: defaultProfessionals,
   isLoading: false,
   error: null,
 };
