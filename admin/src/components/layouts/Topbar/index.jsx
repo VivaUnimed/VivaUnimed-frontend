@@ -419,9 +419,11 @@ export default function Topbar({ isSidebarHidden, onToggleSidebar }) {
 
                 <button
                   type="button"
-                  className="topbar__profile-menu-item"
+                  className="topbar__profile-menu-item topbar__profile-menu-item--disabled"
                   role="menuitem"
-                  onClick={handleLogout}
+                  disabled
+                  aria-disabled="true"
+                  title="Logout indisponível neste ambiente"
                 >
                   Sair
                 </button>

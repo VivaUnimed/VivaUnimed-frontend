@@ -222,6 +222,13 @@
   color: #009953;
 }
 
+.topbar__profile-menu-item--disabled,
+.topbar__profile-menu-item--disabled:hover {
+  background-color: transparent;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
 .topbar__notifications-panel {
   position: absolute;
   top: calc(100% + 12px);
