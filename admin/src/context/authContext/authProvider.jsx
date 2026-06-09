@@ -55,6 +55,11 @@ export default function AuthProvider({ children }) {
     return await authApi.confirmPasswordReset(resetData, authDispatch);
   };
 
+  const logout = async () => {
+    await authApi.logout(authDispatch);
+    navigate('/login', { replace: true });
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -62,6 +67,7 @@ export default function AuthProvider({ children }) {
         authDispatch,
         login,
         signup,
+        logout,
         requestPasswordReset,
         confirmPasswordReset,
       }}

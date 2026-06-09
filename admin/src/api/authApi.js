@@ -1,4 +1,3 @@
-import { useNavigate } from 'react-router-dom';
 import * as authTypes from '../context/authContext/authTypes';
 import { postRequest } from './api';
 import { toast } from 'react-toastify';
@@ -93,15 +92,7 @@ export const logout = async (dispatch) => {
 
   try {
     await postRequest('/usuarios/logout', {});
-
-    const data = await toast.promise(postRequest('/usuarios/logout', {}), {
-      pending: 'Saindo...',
-      error: {
-        render({ data }) {
-          return data?.response?.data?.message || 'E-mail ou senha incorretos';
-        },
-      },
-    });
+    toast.success('Sessão encerrada com sucesso!');
   } catch (error) {
     console.warn('Falha ao invalidar token no servidor:', error.message);
   } finally {
