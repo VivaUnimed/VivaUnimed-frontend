@@ -17,13 +17,13 @@ export default function Topbar({ isSidebarHidden, onToggleSidebar }) {
           <LuMenu className="icon-topbar" />
         </button>
 
-        <div className="topbar__search">
+        {/* <div className="topbar__search">
           <LuSearch className="topbar__search-icon" />
           <input
             type="text"
             placeholder="Busca rápida por paciente para registrar cancelamento..."
           />
-        </div>
+        </div> */}
       </div>
 
       <div className="topbar__actions">

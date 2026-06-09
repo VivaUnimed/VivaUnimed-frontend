@@ -17,6 +17,7 @@ import PatientDetails from '../pages/PatientDetails';
 import EditPatient from '../pages/EditPatient';
 import ProfessionalDetails from '../pages/ProfessionalDetails';
 import VacancyDetails from '../pages/VacancyDetails';
+import Settings from '../pages/Settings';
 
 export const RoutesApp = () => {
   return (
@@ -43,7 +44,7 @@ export const RoutesApp = () => {
           <Route path="/patients/new" element={<CreatePatient />} />
           <Route path="/patients/:patientId/edit" element={<EditPatient />} />
           <Route path="/patients/:patientId" element={<PatientDetails />} />
-          <Route path="/settings" element={<div/>} />
+          <Route path="/settings" element={<Settings />} />
         </Route>
       </Route>
 
