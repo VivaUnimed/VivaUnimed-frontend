@@ -17,6 +17,7 @@ import {
 export default function Alertas() {
   const contentRef = useRef(null);
   const [isCriticalHidden, setIsCriticalHidden] = useState(false);
+  const [showCriticalHero, setShowCriticalHero] = useState(true);
   const [activeTab, setActiveTab] = useState("recentes");
 
   const tabs = [
@@ -27,30 +28,24 @@ export default function Alertas() {
 
   useEffect(() => {
     const contentNode = contentRef.current;
-    const mobileQuery = window.matchMedia("(max-width: 767px)");
 
-    const updateCriticalVisibility = () => {
-      if (!mobileQuery.matches) {
-        setIsCriticalHidden(false);
-        return;
-      }
+    const handleScroll = (event) => {
+      const currentScrollTop =
+        event?.currentTarget === contentNode
+          ? contentNode.scrollTop
+          : window.scrollY;
 
-      setIsCriticalHidden((contentNode?.scrollTop ?? window.scrollY) > 48);
+      setIsCriticalHidden(currentScrollTop > 48);
     };
 
-    contentNode?.addEventListener("scroll", updateCriticalVisibility, {
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    contentNode?.addEventListener("scroll", handleScroll, {
       passive: true,
     });
-    window.addEventListener("scroll", updateCriticalVisibility, {
-      passive: true,
-    });
-    mobileQuery.addEventListener("change", updateCriticalVisibility);
-    updateCriticalVisibility();
 
     return () => {
-      contentNode?.removeEventListener("scroll", updateCriticalVisibility);
-      window.removeEventListener("scroll", updateCriticalVisibility);
-      mobileQuery.removeEventListener("change", updateCriticalVisibility);
+      window.removeEventListener("scroll", handleScroll);
+      contentNode?.removeEventListener("scroll", handleScroll);
     };
   }, []);
 
@@ -67,45 +62,54 @@ export default function Alertas() {
 
           </div>
 
-          <button className="alertas-search-btn">
-            <Search size={18} />
-          </button>
+<button
+          type="button"
+          className={`alerta-toggle-btn ${showCriticalHero ? "on" : "off"}`}
+          onClick={() => setShowCriticalHero((current) => !current)}
+          aria-pressed={showCriticalHero}
+        >
+          Balão: {showCriticalHero ? "ON" : "OFF"}
+        </button>
+
+        <button className="alertas-search-btn">
+          <Search size={18} />
+        </button>
 
         </header>
 
         {/* CONTENT */}
-        <main className="alertas-content" ref={contentRef}>
+        <main
+          className={`alertas-content ${showCriticalHero ? "" : "hero-hidden"}`}
+          ref={contentRef}
+        >
 
           {/* HERO ALERT */}
-          <section
-            className={`alerta-hero ${
-              isCriticalHidden ? "alerta-hero-hidden" : ""
-            }`}
-          >
+          {showCriticalHero && (
+            <section
+              className={`alerta-hero ${
+                isCriticalHidden ? "alerta-hero-hidden" : ""
+              }`}
+            >
+              <div className="alerta-hero-top">
+                <div className="alerta-dot"></div>
+                <span>ALERTA</span>
+              </div>
 
-            <div className="alerta-hero-top">
+              <h1>Oportunidade Crítica</h1>
 
-              <div className="alerta-dot"></div>
+              <p>
+                Vaga aberta agora em Cardiologia para hoje às 15:45.
+                Expira em instantes.
+              </p>
 
-              <span>ALERTA</span>
+              <button className="alerta-hero-btn">
+                Aceitar Vaga Agora
+                <ChevronRight size={16} />
+              </button>
 
-            </div>
-
-            <h1>Oportunidade Crítica</h1>
-
-            <p>
-              Vaga aberta agora em Cardiologia para hoje às 15:45.
-              Expira em instantes.
-            </p>
-
-            <button className="alerta-hero-btn">
-              Aceitar Vaga Agora
-              <ChevronRight size={16} />
-            </button>
-
-            <div className="alerta-lightning"></div>
-
-          </section>
+              <div className="alerta-lightning"></div>
+            </section>
+          )}
 
           <section className="alertas-tabs" aria-label="Tipos de alertas">
             {tabs.map((tab) => (
