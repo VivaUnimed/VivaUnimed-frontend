@@ -27,22 +27,30 @@ export default function Alertas() {
 
   useEffect(() => {
     const contentNode = contentRef.current;
+    const mobileQuery = window.matchMedia("(max-width: 767px)");
 
-    const handleScroll = (event) => {
-      const currentScrollTop =
-        event?.currentTarget === contentNode
-          ? contentNode.scrollTop
-          : window.scrollY;
+    const updateCriticalVisibility = () => {
+      if (!mobileQuery.matches) {
+        setIsCriticalHidden(false);
+        return;
+      }
 
-      setIsCriticalHidden(currentScrollTop > 48);
+      setIsCriticalHidden((contentNode?.scrollTop ?? window.scrollY) > 48);
     };
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    contentNode?.addEventListener("scroll", handleScroll, { passive: true });
+    contentNode?.addEventListener("scroll", updateCriticalVisibility, {
+      passive: true,
+    });
+    window.addEventListener("scroll", updateCriticalVisibility, {
+      passive: true,
+    });
+    mobileQuery.addEventListener("change", updateCriticalVisibility);
+    updateCriticalVisibility();
 
     return () => {
-      window.removeEventListener("scroll", handleScroll);
-      contentNode?.removeEventListener("scroll", handleScroll);
+      contentNode?.removeEventListener("scroll", updateCriticalVisibility);
+      window.removeEventListener("scroll", updateCriticalVisibility);
+      mobileQuery.removeEventListener("change", updateCriticalVisibility);
     };
   }, []);
 

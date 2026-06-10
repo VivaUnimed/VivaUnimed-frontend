@@ -46,18 +46,18 @@
 .alertas-content {
   flex: 1;
 
-  padding: 224px 14px 24px;
+  padding: 24px 14px 24px;
 
   overflow-y: auto;
 }
 
 .alerta-hero {
-  position: fixed;
-  top: 118px;
-  left: 50%;
+  position: relative;
   z-index: 20;
 
   width: min(calc(100% - 28px), 362px);
+
+  margin: 0 auto 16px;
 
   background: linear-gradient(
     135deg,
@@ -71,17 +71,28 @@
 
   color: white;
 
-  overflow: hidden;
+  overflow: visible;
 
   box-shadow: 0 18px 36px rgba(10, 143, 76, 0.28);
-  transform: translateX(-50%);
-  transition: transform 0.28s ease, opacity 0.28s ease;
+  transition: opacity 0.24s ease, transform 0.24s ease, max-height 0.24s ease,
+    margin 0.24s ease, padding 0.24s ease;
 }
 
-.alerta-hero-hidden {
-  opacity: 0;
-  pointer-events: none;
-  transform: translate(-50%, calc(-100% - 84px));
+@media (max-width: 767px) {
+  .alerta-hero {
+    max-height: 240px;
+  }
+
+  .alerta-hero-hidden {
+    max-height: 0;
+    margin-bottom: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-18px);
+    overflow: hidden;
+  }
 }
 
 .alerta-hero-top {
@@ -656,12 +667,12 @@
   }
 
   .alertas-content {
-    padding: 224px 32px 32px;
+    padding: 32px 32px 32px;
     overflow-y: auto;
   }
 
   .alerta-hero {
-    top: 142px;
+    margin-top: 18px;
     width: min(calc(100% - 88px), 456px);
   }
 
@@ -696,11 +707,11 @@
   }
 
   .alertas-content {
-    padding: 244px 56px 40px;
+    padding: 40px 56px 40px;
   }
 
   .alerta-hero {
-    top: 158px;
+    margin-top: 22px;
     width: min(calc(100% - 160px), 608px);
     padding: 22px;
   }
@@ -743,7 +754,7 @@
   }
 
   .alertas-content {
-    padding: 244px 72px 44px;
+    padding: 44px 72px 44px;
   }
 
   .alerta-hero {
@@ -770,7 +781,8 @@
   }
 
   .alerta-hero {
-    left: calc(136px + ((100vw - 136px) / 2));
+    margin-left: auto;
+    margin-right: auto;
     width: min(calc(100vw - 184px), 608px);
   }
 }
@@ -782,7 +794,8 @@
   }
 
   .alerta-hero {
-    left: calc(156px + ((100vw - 156px) / 2));
+    margin-left: auto;
+    margin-right: auto;
     width: min(calc(100vw - 272px), 696px);
   }
 }
