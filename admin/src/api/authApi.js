@@ -2,6 +2,45 @@ import * as authTypes from '../context/authContext/authTypes';
 import { postRequest } from './api';
 import { toast } from 'react-toastify';
 
+// Busca os dados completos do usuário autenticado.
+// Esse endpoint deve retornar roles e permissions.
+export const getMe = async () => {
+  return getRequest('/user/me');
+};
+
+// Remove token e usuário salvos no navegador.
+const clearAuthStorage = () => {
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+  sessionStorage.removeItem('token');
+  sessionStorage.removeItem('user');
+};
+
+// Salva apenas o token antes de chamar /user/me
+const saveTokenStorage = ({ token, rememberMe }) => {
+  const storage = rememberMe ? localStorage : sessionStorage;
+  const otherStorage = rememberMe ? sessionStorage : localStorage;
+
+  otherStorage.removeItem('token');
+  otherStorage.removeItem('user');
+
+  storage.setItem('token', token);
+};
+
+// Salva token e usuário completo após carregar /user/me,
+// dependendo da opção "lembrar-me".
+const saveAuthStorage = ({ token, user, rememberMe }) => {
+  const storage = rememberMe ? localStorage : sessionStorage;
+  const otherStorage = rememberMe ? sessionStorage : localStorage;
+
+  // Garante que os dados antigos não fiquem duplicados no outro storage
+  otherStorage.removeItem('token');
+  otherStorage.removeItem('user');
+
+  storage.setItem('token', token);
+  storage.setItem('user', JSON.stringify(user));
+};
+
 export const signup = async (userCredentials, dispatch) => {
   dispatch({ type: authTypes.SIGNUP_REQUEST });
 
@@ -13,12 +52,7 @@ export const signup = async (userCredentials, dispatch) => {
         success: 'Conta criada com sucesso!',
         error: {
           render({ data }) {
-            // "data" aqui é o erro lançado pelo postRequest
-            return (
-              data?.response?.data?.message ||
-              data?.message ||
-              'Erro ao cadastrar'
-            );
+            return data?.message || 'Erro ao cadastrar';
           },
         },
       },
@@ -30,47 +64,63 @@ export const signup = async (userCredentials, dispatch) => {
 
     const { message } = data;
 
-    dispatch({ type: authTypes.SIGNUP_SUCCESS, payload: { message } });
+    dispatch({
+      type: authTypes.SIGNUP_SUCCESS,
+      payload: { message },
+    });
+
+    return data;
   } catch (error) {
     dispatch({
       type: authTypes.SIGNUP_FAILURE,
       payload: { error: error.message },
     });
+
+    throw error;
   }
 };
 
-export const login = async (userCredentials, rememberMe=true, dispatch) => {
+export const login = async (userCredentials, rememberMe = true, dispatch) => {
   dispatch({ type: authTypes.LOGIN_REQUEST });
 
   try {
-    const data = await toast.promise(
-      postRequest('/usuarios/login', userCredentials),
+    const { token, user } = await toast.promise(
+      async () => {
+        // 1. Faz login e recebe o token
+        const loginData = await postRequest('/auth/login', userCredentials);
+
+        if (!loginData || !loginData.token) {
+          throw new Error('Resposta inválida do servidor');
+        }
+
+        const { token } = loginData;
+
+        // 2. Salva o token antes de chamar /user/me
+        // pois o getRequest precisa enviar Authorization: Bearer <token>
+        saveTokenStorage({ token, rememberMe });
+
+        // 3. Busca os dados completos do usuário logado
+        const user = await getMe();
+
+        if (!user) {
+          throw new Error('Não foi possível carregar os dados do usuário');
+        }
+
+        // 4. Salva o usuário completo com roles e permissions
+        saveAuthStorage({ token, user, rememberMe });
+
+        return { token, user };
+      },
       {
         pending: 'Autenticando...',
         success: 'Login realizado!',
         error: {
           render({ data }) {
-            return (
-              data?.response?.data?.message || 'E-mail ou senha incorretos'
-            );
+            return data?.message || 'E-mail ou senha incorretos';
           },
         },
       },
     );
-
-    if (!data || !data.token || !data.user) {
-      throw new Error('Resposta inválida do servidor');
-    }
-
-    const { token, user } = data;
-
-    if (rememberMe) {
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-    } else {
-      sessionStorage.setItem('token', token);
-      sessionStorage.setItem('user', JSON.stringify(user));
-    }
 
     dispatch({
       type: authTypes.LOGIN_SUCCESS,
@@ -79,11 +129,17 @@ export const login = async (userCredentials, rememberMe=true, dispatch) => {
         user,
       },
     });
+
+    return { token, user };
   } catch (error) {
+    clearAuthStorage();
+
     dispatch({
       type: authTypes.LOGIN_FAILURE,
       payload: { error: error.message },
     });
+
+    throw error;
   }
 };
 
@@ -91,102 +147,14 @@ export const logout = async (dispatch) => {
   dispatch({ type: authTypes.LOGOUT_REQUEST });
 
   try {
-    await postRequest('/usuarios/logout', {});
+    await getRequest('/auth/logout');
+
     toast.success('Sessão encerrada com sucesso!');
   } catch (error) {
-    console.warn('Falha ao invalidar token no servidor:', error.message);
+    console.warn('Falha ao invalidar sessão no servidor:', error.message);
   } finally {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    sessionStorage.removeItem('token');
-    sessionStorage.removeItem('user');
+    clearAuthStorage();
+
     dispatch({ type: authTypes.LOGOUT_SUCCESS });
-  }
-};
-
-export const requestPasswordReset = async (email, dispatch) => {
-  dispatch({ type: authTypes.PASSWORD_RESET_REQUEST_REQUEST });
-
-  try {
-    const data = await toast.promise(
-      postRequest('/usuarios/reset-password-request', { email }),
-      {
-        pending: 'Enviando código de recuperação...',
-        success: 'Código de recuperação enviado com sucesso!',
-        error: {
-          render({ data }) {
-            return (
-              data?.response?.data?.message ||
-              data?.message ||
-              'Não foi possível enviar o código de recuperação.'
-            );
-          },
-        },
-      },
-    );
-
-    if (!data) {
-      throw new Error('Resposta inválida do servidor');
-    }
-
-    const { message } = data;
-
-    dispatch({
-      type: authTypes.PASSWORD_RESET_REQUEST_SUCCESS,
-      payload: { message, email },
-    });
-
-    return data;
-
-  } catch (error) {
-    dispatch({
-      type: authTypes.PASSWORD_RESET_REQUEST_FAILURE,
-      payload: { error: error.message },
-    });
-
-    throw error;
-  }
-};
-
-export const confirmPasswordReset = async (resetData, dispatch) => {
-  dispatch({ type: authTypes.PASSWORD_RESET_CONFIRM_REQUEST });
-
-  try {
-    const data = await toast.promise(
-      postRequest('/usuarios/reset-password-confirm', resetData),
-      {
-        pending: 'Validando Token e Redefinindo senha...',
-        success: 'Senha redefinida com sucesso!',
-        error: {
-          render({ data }) {
-            return (
-              data?.response?.data?.message ||
-              data?.message ||
-              'Não foi possível redefinir a senha.'
-            );
-          },
-        },
-      },
-    );
-
-    if (!data) {
-      throw new Error('Resposta inválida do servidor');
-    }
-
-    const { message } = data;
-
-    dispatch({
-      type: authTypes.PASSWORD_RESET_CONFIRM_SUCCESS,
-      payload: { message },
-    });
-
-    return data;
-  } catch (error) {
-    dispatch({
-      type: authTypes.PASSWORD_RESET_CONFIRM_FAILURE,
-      payload: { error: error.message },
-    });
-
-    throw error;
   }
 };
