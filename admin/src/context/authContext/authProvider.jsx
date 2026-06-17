@@ -6,6 +6,7 @@ import { authInitialState } from './authInitialState';
 import { AuthContext } from './authContext';
 import * as authTypes from './authTypes';
 import * as authApi from '../../api/authApi';
+import { clearAuthStorage } from '../../utils/auth/clearAuthStorage';
 
 const getStoredToken = () => {
   return localStorage.getItem('token') || sessionStorage.getItem('token');
@@ -24,13 +25,6 @@ const getStoredUser = () => {
   } catch {
     return null;
   }
-};
-
-const clearAuthStorage = () => {
-  localStorage.removeItem('token');
-  localStorage.removeItem('user');
-  sessionStorage.removeItem('token');
-  sessionStorage.removeItem('user');
 };
 
 const saveUserInCurrentStorage = (user) => {
@@ -121,14 +115,6 @@ export default function AuthProvider({ children }) {
     }
   };
 
-  const requestPasswordReset = async (email) => {
-    return await authApi.requestPasswordReset(email, authDispatch);
-  };
-
-  const confirmPasswordReset = async (resetData) => {
-    return await authApi.confirmPasswordReset(resetData, authDispatch);
-  };
-
   const logout = async () => {
     await authApi.logout(authDispatch);
     navigate('/login', { replace: true });
@@ -162,17 +148,10 @@ export default function AuthProvider({ children }) {
 
         user: authState.user,
         token: authState.token,
-        isAuthenticated: authState.isAuthenticated,
-        isAuthenticating: authState.isAuthenticating,
-        isSessionLoading: authState.isSessionLoading,
-        isLoading: authState.isLoading,
-        error: authState.error,
 
         login,
         signup,
         logout,
-        requestPasswordReset,
-        confirmPasswordReset,
 
         hasPermission,
         hasRole,

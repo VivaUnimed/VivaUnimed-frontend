@@ -1,4 +1,5 @@
 import * as authTypes from '../context/authContext/authTypes';
+import { clearAuthStorage } from '../utils/auth/clearAuthStorage';
 import { postRequest } from './api';
 import { toast } from 'react-toastify';
 
@@ -6,14 +7,6 @@ import { toast } from 'react-toastify';
 // Esse endpoint deve retornar roles e permissions.
 export const getMe = async () => {
   return getRequest('/user/me');
-};
-
-// Remove token e usuário salvos no navegador.
-const clearAuthStorage = () => {
-  localStorage.removeItem('token');
-  localStorage.removeItem('user');
-  sessionStorage.removeItem('token');
-  sessionStorage.removeItem('user');
 };
 
 // Salva apenas o token antes de chamar /user/me
@@ -86,7 +79,7 @@ export const login = async (userCredentials, rememberMe = true, dispatch) => {
   try {
     const { token, user } = await toast.promise(
       async () => {
-        // 1. Faz login e recebe o token
+        // Faz login e recebe o token
         const loginData = await postRequest('/auth/login', userCredentials);
 
         if (!loginData || !loginData.token) {
@@ -95,18 +88,18 @@ export const login = async (userCredentials, rememberMe = true, dispatch) => {
 
         const { token } = loginData;
 
-        // 2. Salva o token antes de chamar /user/me
+        // Salva o token antes de chamar /user/me
         // pois o getRequest precisa enviar Authorization: Bearer <token>
         saveTokenStorage({ token, rememberMe });
 
-        // 3. Busca os dados completos do usuário logado
+        // Busca os dados completos do usuário logado
         const user = await getMe();
 
         if (!user) {
           throw new Error('Não foi possível carregar os dados do usuário');
         }
 
-        // 4. Salva o usuário completo com roles e permissions
+        // Salva o usuário completo com roles e permissions
         saveAuthStorage({ token, user, rememberMe });
 
         return { token, user };
