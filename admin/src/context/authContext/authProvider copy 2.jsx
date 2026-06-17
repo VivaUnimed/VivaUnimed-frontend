@@ -39,6 +39,7 @@ const saveUserInCurrentStorage = (user) => {
 };
 
 // Inicializa o estado com o que existe no storage.
+// A validação real será feita depois pelo /user/me.
 const init = (initialState) => {
   const token = getStoredToken();
   const user = getStoredUser();
@@ -53,6 +54,14 @@ const init = (initialState) => {
   }
 
   return initialState;
+
+  // return {
+  //   ...initialState,
+  //   token,
+  //   user,
+  //   isAuthenticated: !!token && !!user,
+  //   isSessionLoading: true,
+  // };
 };
 
 export default function AuthProvider({ children }) {
@@ -63,6 +72,46 @@ export default function AuthProvider({ children }) {
   );
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const loadSession = async () => {
+      const token = getStoredToken();
+
+      if (!token) {
+        authDispatch({
+          type: authTypes.INIT_SESSION_FAILURE,
+          payload: { error: null },
+        });
+
+        return;
+      }
+
+      authDispatch({ type: authTypes.INIT_SESSION_REQUEST });
+
+      try {
+        const user = await authApi.getMe();
+
+        saveUserInCurrentStorage(user);
+
+        authDispatch({
+          type: authTypes.INIT_SESSION_SUCCESS,
+          payload: {
+            token,
+            user,
+          },
+        });
+      } catch (error) {
+        clearAuthStorage();
+
+        authDispatch({
+          type: authTypes.INIT_SESSION_FAILURE,
+          payload: { error: error.message },
+        });
+      }
+    };
+
+    // loadSession();
+  }, []);
 
   const login = async (userCredentials, rememberMe = true) => {
     return await authApi.login(userCredentials, rememberMe, authDispatch);
