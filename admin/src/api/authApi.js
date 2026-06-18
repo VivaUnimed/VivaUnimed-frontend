@@ -44,7 +44,7 @@ export const login = async (userCredentials, rememberMe=true, dispatch) => {
 
   try {
     const data = await toast.promise(
-      postRequest('/usuarios/login', userCredentials),
+      postRequest('/api/auth/login', userCredentials),
       {
         pending: 'Autenticando...',
         success: 'Login realizado!',
@@ -91,7 +91,7 @@ export const logout = async (dispatch) => {
   dispatch({ type: authTypes.LOGOUT_REQUEST });
 
   try {
-    await postRequest('/usuarios/logout', {});
+    await postRequest('/api/auth/logout', {});
     toast.success('Sessão encerrada com sucesso!');
   } catch (error) {
     console.warn('Falha ao invalidar token no servidor:', error.message);

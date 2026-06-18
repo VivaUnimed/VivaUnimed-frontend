@@ -45,7 +45,7 @@ export const login = async (userCredentials, rememberMe=true, dispatch) => {
 
   try {
     const data = await toast.promise(
-      postRequest('/usuarios/login', userCredentials),
+      postRequest('/api/auth/login', userCredentials),
       {
         pending: 'Autenticando...',
         success: 'Login realizado!',
@@ -92,7 +92,7 @@ export const logout = async (dispatch) => {
   dispatch({ type: authTypes.LOGOUT_REQUEST });
 
   try {
-    await toast.promise(postRequest('/usuarios/logout', {}), {
+    await toast.promise(postRequest('/api/auth/logout', {}), {
       pending: 'Saindo...',
       error: {
         render({ data }) {
