@@ -58,11 +58,15 @@ export const login = async (userCredentials, rememberMe=true, dispatch) => {
       },
     );
 
-    if (!data || !data.user) {
+    if (!data || !data.id) {
       throw new Error('Resposta inválida do servidor');
     }
 
-    const { user } = data;
+    const user = {
+      id: data.id,
+      name: data.name,
+      email: data.email,
+    };
 
     if (rememberMe) {
       localStorage.setItem('user', JSON.stringify(user));

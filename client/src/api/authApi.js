@@ -42,7 +42,6 @@ export const signup = async (userCredentials, dispatch) => {
 
 export const login = async (userCredentials, rememberMe=true, dispatch) => {
   dispatch({ type: authTypes.LOGIN_REQUEST });
-
   try {
     const data = await toast.promise(
       postRequest('/api/auth/login', userCredentials),
@@ -58,12 +57,15 @@ export const login = async (userCredentials, rememberMe=true, dispatch) => {
         },
       },
     );
-
-    if (!data || !data.user) {
+    if (!data || !data.id) {
       throw new Error('Resposta inválida do servidor');
     }
 
-    const { user } = data;
+    const user = {
+      id: data.id,
+      name: data.name,
+      email: data.email,
+    };
 
     if (rememberMe) {
       localStorage.setItem('user', JSON.stringify(user));
