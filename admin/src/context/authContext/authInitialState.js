@@ -1,6 +1,4 @@
 export const authInitialState = {
-  token: null,
-
   user: null,
 
   isAuthenticated: true,

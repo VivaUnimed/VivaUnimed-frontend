@@ -8,9 +8,6 @@ import { useNavigate } from 'react-router-dom';
 
 // Função de inicialização: roda apenas uma vez quando o componente monta
 const init = (initialState) => {
-  const token =
-    localStorage.getItem('token') || sessionStorage.getItem('token');
-
   const storedUser =
     localStorage.getItem('user') || sessionStorage.getItem('user');
 
@@ -22,10 +19,9 @@ const init = (initialState) => {
     sessionStorage.removeItem('user');
   }
 
-  if (token && user) {
+  if (user) {
     return {
       ...initialState,
-      token,
       user,
       isAuthenticated: true,
     };
@@ -46,20 +42,17 @@ export default function AuthProvider({ children }) {
   };
 
   const demoLogin = () => {
-    const token = 'demo-token';
     const user = {
       id: 'demo',
       name: 'Paciente Demo',
       email: 'demo@vivaunimed.local',
     };
 
-    sessionStorage.setItem('token', token);
     sessionStorage.setItem('user', JSON.stringify(user));
 
     authDispatch({
       type: authTypes.LOGIN_SUCCESS,
       payload: {
-        token,
         user,
       },
     });
