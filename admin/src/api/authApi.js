@@ -44,7 +44,7 @@ export const login = async (userCredentials, rememberMe=true, dispatch) => {
 
   try {
     const data = await toast.promise(
-      postRequest('/usuarios/login', userCredentials),
+      postRequest('/api/auth/login', userCredentials),
       {
         pending: 'Autenticando...',
         success: 'Login realizado!',
@@ -58,24 +58,25 @@ export const login = async (userCredentials, rememberMe=true, dispatch) => {
       },
     );
 
-    if (!data || !data.token || !data.user) {
+    if (!data || !data.id) {
       throw new Error('Resposta inválida do servidor');
     }
 
-    const { token, user } = data;
+    const user = {
+      id: data.id,
+      name: data.name,
+      email: data.email,
+    };
 
     if (rememberMe) {
-      localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
     } else {
-      sessionStorage.setItem('token', token);
       sessionStorage.setItem('user', JSON.stringify(user));
     }
 
     dispatch({
       type: authTypes.LOGIN_SUCCESS,
       payload: {
-        token,
         user,
       },
     });
@@ -91,14 +92,12 @@ export const logout = async (dispatch) => {
   dispatch({ type: authTypes.LOGOUT_REQUEST });
 
   try {
-    await postRequest('/usuarios/logout', {});
+    await postRequest('/api/auth/logout', {});
     toast.success('Sessão encerrada com sucesso!');
   } catch (error) {
     console.warn('Falha ao invalidar token no servidor:', error.message);
   } finally {
-    localStorage.removeItem('token');
     localStorage.removeItem('user');
-    sessionStorage.removeItem('token');
     sessionStorage.removeItem('user');
     dispatch({ type: authTypes.LOGOUT_SUCCESS });
   }
