@@ -1,6 +1,6 @@
 import * as authTypes from '../context/authContext/authTypes';
 import { clearAuthStorage } from '../utils/auth/clearAuthStorage';
-import { postRequest } from './api';
+import { getRequest, postRequest } from './api';
 import { toast } from 'react-toastify';
 
 // Busca os dados completos do usuário autenticado.
@@ -126,6 +126,8 @@ export const login = async (userCredentials, rememberMe = true, dispatch) => {
     return { token, user };
   } catch (error) {
     clearAuthStorage();
+
+    console.log(error)
 
     dispatch({
       type: authTypes.LOGIN_FAILURE,

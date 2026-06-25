@@ -9,7 +9,7 @@ export const authInitialState = {
     permissions: ['patient.read', 'patient.edit'],
   },
 
-  isAuthenticated: true,
+  isAuthenticated: false,
   isAuthenticating: false,
 
   // Usado para verificar a sessão ao abrir/recarregar a aplicação

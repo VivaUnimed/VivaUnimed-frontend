@@ -64,6 +64,46 @@ export default function AuthProvider({ children }) {
 
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const loadSession = async () => {
+      const token = getStoredToken();
+
+      if (!token) {
+        authDispatch({
+          type: authTypes.INIT_SESSION_FAILURE,
+          payload: { error: null },
+        });
+
+        return;
+      }
+
+      authDispatch({ type: authTypes.INIT_SESSION_REQUEST });
+
+      try {
+        const user = await authApi.getMe();
+
+        saveUserInCurrentStorage(user);
+
+        authDispatch({
+          type: authTypes.INIT_SESSION_SUCCESS,
+          payload: {
+            token,
+            user,
+          },
+        });
+      } catch (error) {
+        clearAuthStorage();
+
+        authDispatch({
+          type: authTypes.INIT_SESSION_FAILURE,
+          payload: { error: error.message },
+        });
+      }
+    };
+
+    loadSession();
+  }, []);
+
   const login = async (userCredentials, rememberMe = true) => {
     return await authApi.login(userCredentials, rememberMe, authDispatch);
   };

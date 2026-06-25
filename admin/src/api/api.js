@@ -1,4 +1,12 @@
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+// Pega a URL base da API definida no arquivo .env.
+// Se ela existir, remove espaços antes/depois com trim().
+// Se não existir, usa '/api' como valor padrão.
+const rawBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim() || '/api';
+
+// Normaliza a URL base removendo a barra final, caso exista.
+const BASE_URL = rawBaseUrl.endsWith('/')
+  ? rawBaseUrl.slice(0, -1)
+  : rawBaseUrl;
 
 // Tenta converter a resposta para JSON.
 // Caso a resposta não tenha corpo ou não seja JSON válido, retorna null.
@@ -73,6 +81,7 @@ const getHeaders = () => {
 
 export const postRequest = async (endpoint, data) => {
   const response = await fetch(`${BASE_URL}${endpoint}`, {
+    credentials: 'include',
     method: 'POST',
     headers: getHeaders(),
     body: JSON.stringify(data),
@@ -84,6 +93,7 @@ export const postRequest = async (endpoint, data) => {
 // Requisição PUT usada para atualizar dados existentes.
 export const putRequest = async (endpoint, data) => {
   const response = await fetch(`${BASE_URL}${endpoint}`, {
+    credentials: 'include',
     method: 'PUT',
     headers: getHeaders(),
     body: JSON.stringify(data),
@@ -95,6 +105,7 @@ export const putRequest = async (endpoint, data) => {
 // Requisição GET usada para buscar dados no backend.
 export const getRequest = async (endpoint) => {
   const response = await fetch(`${BASE_URL}${endpoint}`, {
+    credentials: 'include',
     method: 'GET',
     headers: getHeaders(),
   });
@@ -105,6 +116,7 @@ export const getRequest = async (endpoint) => {
 // Requisição DELETE usada para remover dados no backend.
 export const deleteRequest = async (endpoint) => {
   const response = await fetch(`${BASE_URL}${endpoint}`, {
+    credentials: 'include',
     method: 'DELETE',
     headers: getHeaders(),
   });
