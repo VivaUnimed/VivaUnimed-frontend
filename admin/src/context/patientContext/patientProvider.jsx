@@ -1,68 +1,47 @@
-import { useEffect, useReducer } from 'react';
-import { patientContext as PatientContext } from './patientContext';
-import { patientReducer } from './patientReducer';
+import { useReducer } from 'react';
+
+import * as patientApi from '../../api/patientApi';
+import * as userApi from '../../api/userApi';
+import { buildAdminPatients } from '../../utils/patients/buildAdminPatients';
+import { patientContext } from './patientContext';
 import { patientInitialState } from './patientInitialState';
-import { patientTypes } from './patientTypes';
-import {
-  buildPatientFromForm,
-  buildUpdatedPatientFromForm,
-} from '../../data/patients';
-
-const PATIENTS_STORAGE_KEY = 'vivaunimed:patients';
-
-const getInitialPatientState = (baseState) => {
-  if (typeof window === 'undefined') {
-    return baseState;
-  }
-
-  try {
-    const storedPatients = window.localStorage.getItem(PATIENTS_STORAGE_KEY);
-
-    if (!storedPatients) {
-      return baseState;
-    }
-
-    const parsedPatients = JSON.parse(storedPatients);
-
-    if (!Array.isArray(parsedPatients) || parsedPatients.length === 0) {
-      return baseState;
-    }
-
-    return {
-      ...baseState,
-      patients: parsedPatients,
-    };
-  } catch {
-    return baseState;
-  }
-};
+import { patientReducer } from './patientReducer';
+import * as patientTypes from './patientTypes';
 
 export default function PatientProvider({ children }) {
   const [patientState, patientDispatch] = useReducer(
     patientReducer,
     patientInitialState,
-    getInitialPatientState,
   );
 
-  useEffect(() => {
-    window.localStorage.setItem(
-      PATIENTS_STORAGE_KEY,
-      JSON.stringify(patientState.patients),
-    );
-  }, [patientState.patients]);
+  const buildPendingPatientOperation = (patientData, operation) => {
+    const pendingOperation = operation();
 
-  const getPatients = () => {
+    pendingOperation.name = patientData?.name?.trim?.() ?? patientData?.name;
+
+    return pendingOperation;
+  };
+
+  const getPatients = async () => {
     patientDispatch({ type: patientTypes.GET_ALL_PATIENTS_REQUEST });
 
     try {
-      const patients = patientState.patients;
+      const [patients, users] = await Promise.all([
+        patientApi.getAllPatients(),
+        userApi.getAllUsers(),
+      ]);
+      const adminPatients = buildAdminPatients(patients, users);
 
       patientDispatch({
         type: patientTypes.GET_ALL_PATIENTS_SUCCESS,
-        payload: { patients },
+        payload: {
+          patients,
+          users,
+          adminPatients,
+        },
       });
 
-      return patients;
+      return adminPatients;
     } catch (error) {
       patientDispatch({
         type: patientTypes.GET_ALL_PATIENTS_FAILURE,
@@ -73,77 +52,91 @@ export default function PatientProvider({ children }) {
     }
   };
 
-  const createPatient = (newPatient) => {
-    patientDispatch({ type: patientTypes.CREATE_PATIENT_REQUEST });
+  const createPatient = (patientData) => {
+    return buildPendingPatientOperation(patientData, async () => {
+      patientDispatch({ type: patientTypes.CREATE_PATIENT_REQUEST });
 
-    try {
-      const patient = buildPatientFromForm(newPatient, patientState.patients);
+      try {
+        const user = await userApi.createUser({
+          name: patientData.name,
+          email: patientData.email,
+          phone: patientData.phone,
+          cpf: patientData.cpf,
+          password: patientData.password,
+          roles: ['Paciente'],
+        });
 
-      patientDispatch({
-        type: patientTypes.CREATE_PATIENT_SUCCESS,
-        payload: { patient },
-      });
+        const patient = await patientApi.createPatient({
+          userId: user.id,
+          birth: patientData.birth,
+        });
 
-      return patient;
-    } catch (error) {
-      patientDispatch({
-        type: patientTypes.CREATE_PATIENT_FAILURE,
-        payload: { error: error.message },
-      });
+        patientDispatch({
+          type: patientTypes.CREATE_PATIENT_SUCCESS,
+          payload: { patient },
+        });
 
-      return null;
-    }
-  };
+        await getPatients();
 
-  const updatePatient = (patientId, updatedPatientData) => {
-    patientDispatch({ type: patientTypes.UPDATE_PATIENT_REQUEST });
+        return patient;
+      } catch (error) {
+        patientDispatch({
+          type: patientTypes.CREATE_PATIENT_FAILURE,
+          payload: { error: error.message },
+        });
 
-    try {
-      const currentPatient = patientState.patients.find(
-        (patient) => String(patient.id) === String(patientId),
-      );
-
-      if (!currentPatient) {
-        throw new Error('Paciente nao encontrado.');
+        return null;
       }
-
-      const patient = buildUpdatedPatientFromForm(
-        updatedPatientData,
-        currentPatient,
-      );
-
-      patientDispatch({
-        type: patientTypes.UPDATE_PATIENT_SUCCESS,
-        payload: { patient },
-      });
-
-      return patient;
-    } catch (error) {
-      patientDispatch({
-        type: patientTypes.UPDATE_PATIENT_FAILURE,
-        payload: { error: error.message },
-      });
-
-      return null;
-    }
+    });
   };
 
-  const deletePatient = (patientId) => {
+  const updatePatient = (patientData, patientId) => {
+    const normalizedPatientData =
+      patientData && typeof patientData === 'object' ? patientData : patientId;
+    const normalizedPatientId =
+      patientData && typeof patientData === 'object' ? patientId : patientData;
+
+    return buildPendingPatientOperation(normalizedPatientData, async () => {
+      patientDispatch({ type: patientTypes.UPDATE_PATIENT_REQUEST });
+
+      try {
+        // TODO: editar name, email, phone e cpf apenas quando existir endpoint confirmado de atualização de usuário.
+        const patient = await patientApi.updatePatient(
+          { birth: normalizedPatientData?.birth },
+          normalizedPatientId,
+        );
+
+        patientDispatch({
+          type: patientTypes.UPDATE_PATIENT_SUCCESS,
+          payload: { patient },
+        });
+
+        await getPatients();
+
+        return patient;
+      } catch (error) {
+        patientDispatch({
+          type: patientTypes.UPDATE_PATIENT_FAILURE,
+          payload: { error: error.message },
+        });
+
+        return null;
+      }
+    });
+  };
+
+  const deletePatient = async (patientId) => {
     patientDispatch({ type: patientTypes.DELETE_PATIENT_REQUEST });
 
     try {
-      const currentPatient = patientState.patients.find(
-        (patient) => String(patient.id) === String(patientId),
-      );
-
-      if (!currentPatient) {
-        throw new Error('Paciente nao encontrado.');
-      }
+      await patientApi.deletePatient(patientId);
 
       patientDispatch({
         type: patientTypes.DELETE_PATIENT_SUCCESS,
         payload: { id: patientId },
       });
+
+      await getPatients();
 
       return patientId;
     } catch (error) {
@@ -157,7 +150,7 @@ export default function PatientProvider({ children }) {
   };
 
   return (
-    <PatientContext.Provider
+    <patientContext.Provider
       value={{
         patientState,
         patientDispatch,
@@ -168,6 +161,6 @@ export default function PatientProvider({ children }) {
       }}
     >
       {children}
-    </PatientContext.Provider>
+    </patientContext.Provider>
   );
 }

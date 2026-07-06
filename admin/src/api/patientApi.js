@@ -1,5 +1,5 @@
 import { toast } from 'react-toastify';
-import { patientTypes } from '../context/patientContext/patientTypes';
+import * as patientTypes from '../context/patientContext/patientTypes';
 import {
   deleteRequest,
   getRequest,

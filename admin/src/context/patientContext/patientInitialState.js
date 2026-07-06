@@ -1,7 +1,7 @@
-import { defaultPatients } from '../../data/patients';
-
 export const patientInitialState = {
-  patients: defaultPatients,
+  patients: [],
+  users: [],
+  adminPatients: [],
   isLoading: false,
   error: null,
 };
