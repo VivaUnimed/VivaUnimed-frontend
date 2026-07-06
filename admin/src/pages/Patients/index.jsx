@@ -65,6 +65,15 @@ function getPatientIdentifier(patient) {
   return 'ID indisponível';
 }
 
+function getPatientInitials(name = '') {
+  const [firstName = '', secondName = ''] = String(name)
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+
+  return `${firstName[0] ?? ''}${secondName[0] ?? firstName[1] ?? ''}`.toUpperCase() || 'CL';
+}
+
 function getSearchableFields(patient) {
   return [
     patient?.name ?? '',
@@ -293,6 +302,9 @@ export default function Patients() {
                   <tr key={patient.patientId}>
                     <td>
                       <div className="patient-info">
+                        <div className="patient-info__avatar" aria-hidden="true">
+                          {getPatientInitials(patient.name)}
+                        </div>
                         <div>
                           <strong>{patient.name}</strong>
                           <span>{getPatientIdentifier(patient)}</span>
