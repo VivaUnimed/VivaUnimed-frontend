@@ -1,5 +1,4 @@
 import { toast } from 'react-toastify';
-import * as patientTypes from '../context/patientContext/patientTypes';
 import {
   deleteRequest,
   getRequest,
@@ -32,27 +31,15 @@ const normalizePatientUpdatePayload = (patientData = {}) => ({
   birth: patientData.birth,
 });
 
-export const getAllPatients = async (dispatch) => {
-  dispatch?.({ type: patientTypes.GET_ALL_PATIENTS_REQUEST });
-
+export const getAllPatients = async () => {
   try {
     const data = await getRequest('/patient');
     const patients = Array.isArray(data)
       ? data
       : data?.patients ?? data?.data ?? [];
 
-    dispatch?.({
-      type: patientTypes.GET_ALL_PATIENTS_SUCCESS,
-      payload: { patients },
-    });
-
     return patients;
   } catch (error) {
-    dispatch?.({
-      type: patientTypes.GET_ALL_PATIENTS_FAILURE,
-      payload: { error: error.message },
-    });
-
     toast.error('Erro ao carregar pacientes!');
     throw error;
   }
@@ -62,9 +49,7 @@ export const getPatientById = async (id) => {
   return getRequest(`/patient/${id}`);
 };
 
-export const createPatient = async (patientData, dispatch) => {
-  dispatch?.({ type: patientTypes.CREATE_PATIENT_REQUEST });
-
+export const createPatient = async (patientData) => {
   try {
     const normalizedPayload = removeUndefinedFields(
       normalizePatientPayload(patientData),
@@ -88,25 +73,13 @@ export const createPatient = async (patientData, dispatch) => {
 
     const patient = data?.patient ?? data;
 
-    dispatch?.({
-      type: patientTypes.CREATE_PATIENT_SUCCESS,
-      payload: { patient },
-    });
-
     return patient;
   } catch (error) {
-    dispatch?.({
-      type: patientTypes.CREATE_PATIENT_FAILURE,
-      payload: { error: error.message },
-    });
-
     throw error;
   }
 };
 
-export const updatePatient = async (patientData, id, dispatch) => {
-  dispatch?.({ type: patientTypes.UPDATE_PATIENT_REQUEST });
-
+export const updatePatient = async (patientData, id) => {
   try {
     const normalizedPayload = removeUndefinedFields(
       normalizePatientUpdatePayload(patientData),
@@ -130,25 +103,13 @@ export const updatePatient = async (patientData, id, dispatch) => {
 
     const patient = data?.patient ?? data;
 
-    dispatch?.({
-      type: patientTypes.UPDATE_PATIENT_SUCCESS,
-      payload: { patient, id },
-    });
-
     return patient;
   } catch (error) {
-    dispatch?.({
-      type: patientTypes.UPDATE_PATIENT_FAILURE,
-      payload: { error: error.message },
-    });
-
     throw error;
   }
 };
 
-export const deletePatient = async (id, dispatch) => {
-  dispatch?.({ type: patientTypes.DELETE_PATIENT_REQUEST });
-
+export const deletePatient = async (id) => {
   try {
     await toast.promise(deleteRequest(`/patient/${id}`), {
       pending: 'Excluindo paciente...',
@@ -164,18 +125,8 @@ export const deletePatient = async (id, dispatch) => {
       },
     });
 
-    dispatch?.({
-      type: patientTypes.DELETE_PATIENT_SUCCESS,
-      payload: { id },
-    });
-
     return id;
   } catch (error) {
-    dispatch?.({
-      type: patientTypes.DELETE_PATIENT_FAILURE,
-      payload: { error: error.message },
-    });
-
     throw error;
   }
 };
