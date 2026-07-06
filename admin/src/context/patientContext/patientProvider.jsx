@@ -14,14 +14,6 @@ export default function PatientProvider({ children }) {
     patientInitialState,
   );
 
-  const buildPendingPatientOperation = (patientData, operation) => {
-    const pendingOperation = operation();
-
-    pendingOperation.name = patientData?.name?.trim?.() ?? patientData?.name;
-
-    return pendingOperation;
-  };
-
   const getPatients = async () => {
     patientDispatch({ type: patientTypes.GET_ALL_PATIENTS_REQUEST });
 
@@ -52,77 +44,73 @@ export default function PatientProvider({ children }) {
     }
   };
 
-  const createPatient = (patientData) => {
-    return buildPendingPatientOperation(patientData, async () => {
-      patientDispatch({ type: patientTypes.CREATE_PATIENT_REQUEST });
+  const createPatient = async (patientData) => {
+    patientDispatch({ type: patientTypes.CREATE_PATIENT_REQUEST });
 
-      try {
-        const user = await userApi.createUser({
-          name: patientData.name,
-          email: patientData.email,
-          phone: patientData.phone,
-          cpf: patientData.cpf,
-          password: patientData.password,
-          roles: ['Paciente'],
-        });
+    try {
+      const user = await userApi.createUser({
+        name: patientData.name,
+        email: patientData.email,
+        phone: patientData.phone,
+        cpf: patientData.cpf,
+        password: patientData.password,
+        roles: ['Paciente'],
+      });
 
-        const patient = await patientApi.createPatient({
-          userId: user.id,
-          birth: patientData.birth,
-        });
+      const patient = await patientApi.createPatient({
+        userId: user.id,
+        birth: patientData.birth,
+      });
 
-        patientDispatch({
-          type: patientTypes.CREATE_PATIENT_SUCCESS,
-          payload: { patient },
-        });
+      patientDispatch({
+        type: patientTypes.CREATE_PATIENT_SUCCESS,
+        payload: { patient },
+      });
 
-        await getPatients();
+      await getPatients();
 
-        return patient;
-      } catch (error) {
-        patientDispatch({
-          type: patientTypes.CREATE_PATIENT_FAILURE,
-          payload: { error: error.message },
-        });
+      return patient;
+    } catch (error) {
+      patientDispatch({
+        type: patientTypes.CREATE_PATIENT_FAILURE,
+        payload: { error: error.message },
+      });
 
-        return null;
-      }
-    });
+      throw error;
+    }
   };
 
-  const updatePatient = (patientData, patientId) => {
+  const updatePatient = async (patientData, patientId) => {
     const normalizedPatientData =
       patientData && typeof patientData === 'object' ? patientData : patientId;
     const normalizedPatientId =
       patientData && typeof patientData === 'object' ? patientId : patientData;
 
-    return buildPendingPatientOperation(normalizedPatientData, async () => {
-      patientDispatch({ type: patientTypes.UPDATE_PATIENT_REQUEST });
+    patientDispatch({ type: patientTypes.UPDATE_PATIENT_REQUEST });
 
-      try {
-        // TODO: editar name, email, phone e cpf apenas quando existir endpoint confirmado de atualização de usuário.
-        const patient = await patientApi.updatePatient(
-          { birth: normalizedPatientData?.birth },
-          normalizedPatientId,
-        );
+    try {
+      // TODO: editar name, email, phone e cpf apenas quando existir endpoint confirmado de atualização de usuário.
+      const patient = await patientApi.updatePatient(
+        { birth: normalizedPatientData?.birth },
+        normalizedPatientId,
+      );
 
-        patientDispatch({
-          type: patientTypes.UPDATE_PATIENT_SUCCESS,
-          payload: { patient },
-        });
+      patientDispatch({
+        type: patientTypes.UPDATE_PATIENT_SUCCESS,
+        payload: { patient },
+      });
 
-        await getPatients();
+      await getPatients();
 
-        return patient;
-      } catch (error) {
-        patientDispatch({
-          type: patientTypes.UPDATE_PATIENT_FAILURE,
-          payload: { error: error.message },
-        });
+      return patient;
+    } catch (error) {
+      patientDispatch({
+        type: patientTypes.UPDATE_PATIENT_FAILURE,
+        payload: { error: error.message },
+      });
 
-        return null;
-      }
-    });
+      throw error;
+    }
   };
 
   const deletePatient = async (patientId) => {
@@ -145,7 +133,7 @@ export default function PatientProvider({ children }) {
         payload: { error: error.message },
       });
 
-      return null;
+      throw error;
     }
   };
 

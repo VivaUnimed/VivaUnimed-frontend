@@ -7,8 +7,24 @@ import {
   putRequest,
 } from './api';
 
+const removeUndefinedFields = (payload = {}) => {
+  return Object.fromEntries(
+    Object.entries(payload).filter(([, value]) => value !== undefined),
+  );
+};
+
+const normalizeUserId = (userId) => {
+  if (userId === undefined || userId === null || userId === '') {
+    return undefined;
+  }
+
+  const normalizedUserId = Number(userId);
+
+  return Number.isNaN(normalizedUserId) ? undefined : normalizedUserId;
+};
+
 const normalizePatientPayload = (patientData = {}) => ({
-  userId: Number(patientData.userId),
+  userId: normalizeUserId(patientData.userId),
   birth: patientData.birth,
 });
 
@@ -50,7 +66,9 @@ export const createPatient = async (patientData, dispatch) => {
   dispatch?.({ type: patientTypes.CREATE_PATIENT_REQUEST });
 
   try {
-    const normalizedPayload = normalizePatientPayload(patientData);
+    const normalizedPayload = removeUndefinedFields(
+      normalizePatientPayload(patientData),
+    );
     const data = await toast.promise(
       postRequest('/patient', normalizedPayload),
       {
@@ -90,7 +108,9 @@ export const updatePatient = async (patientData, id, dispatch) => {
   dispatch?.({ type: patientTypes.UPDATE_PATIENT_REQUEST });
 
   try {
-    const normalizedPayload = normalizePatientUpdatePayload(patientData);
+    const normalizedPayload = removeUndefinedFields(
+      normalizePatientUpdatePayload(patientData),
+    );
     const data = await toast.promise(
       putRequest(`/patient/${id}`, normalizedPayload),
       {

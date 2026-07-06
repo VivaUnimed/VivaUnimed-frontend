@@ -1,9 +1,19 @@
 import { getRequest, postRequest } from './api';
 
+const normalizePhone = (phone) => {
+  if (!phone) {
+    return undefined;
+  }
+
+  const onlyNumbers = String(phone).replace(/\D/g, '');
+
+  return onlyNumbers ? Number(onlyNumbers) : undefined;
+};
+
 const normalizeUserPayload = (userData = {}) => ({
   name: userData.name?.trim() ?? '',
   email: userData.email?.trim() ?? '',
-  phone: userData.phone ? Number(userData.phone) : undefined,
+  phone: normalizePhone(userData.phone),
   cpf: userData.cpf?.trim() || undefined,
   password: userData.password,
   roles: userData.roles ?? ['Paciente'],
