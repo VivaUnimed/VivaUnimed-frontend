@@ -40,7 +40,7 @@ export default function PatientProvider({ children }) {
         payload: { error: error.message },
       });
 
-      return [];
+      throw error;
     }
   };
 
@@ -81,18 +81,13 @@ export default function PatientProvider({ children }) {
   };
 
   const updatePatient = async (patientData, patientId) => {
-    const normalizedPatientData =
-      patientData && typeof patientData === 'object' ? patientData : patientId;
-    const normalizedPatientId =
-      patientData && typeof patientData === 'object' ? patientId : patientData;
-
     patientDispatch({ type: patientTypes.UPDATE_PATIENT_REQUEST });
 
     try {
       // TODO: editar name, email, phone e cpf apenas quando existir endpoint confirmado de atualização de usuário.
       const patient = await patientApi.updatePatient(
-        { birth: normalizedPatientData?.birth },
-        normalizedPatientId,
+        { birth: patientData?.birth },
+        patientId,
       );
 
       patientDispatch({
