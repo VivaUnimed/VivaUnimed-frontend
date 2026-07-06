@@ -17,13 +17,17 @@
   align-items: center;
   justify-content: center;
   padding: 28px 24px 16px;
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
 }
 
 .login-paciente-header .app-logo-small {
   width: min(100%, 430px);
   height: 136px;
   margin: 0 auto;
+  position: absolute;
 }
 
 .login-paciente-content {
@@ -149,7 +153,7 @@
   }
 
   .login-paciente-header .app-logo-small {
-    position: fixed;
+    position: absolute;
     top: 24px;
     left: 50%;
     z-index: 70;
@@ -240,7 +244,7 @@
   }
 
   .login-paciente-header .app-logo-small {
-    position: fixed !important;
+    position: absolute;
     top: 24px;
     left: 50%;
     z-index: 70;

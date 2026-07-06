@@ -2,6 +2,7 @@ import * as authTypes from '../context/authContext/authTypes';
 import { postRequest } from './api';
 import { toast } from 'react-toastify';
 
+
 export const signup = async (userCredentials, dispatch) => {
   dispatch({ type: authTypes.SIGNUP_REQUEST });
 
@@ -13,11 +14,10 @@ export const signup = async (userCredentials, dispatch) => {
         success: 'Conta criada com sucesso!',
         error: {
           render({ data }) {
-            // "data" aqui é o erro lançado pelo postRequest
             return (
               data?.response?.data?.message ||
               data?.message ||
-              'Erro ao cadastrar'
+              'Não foi possível concluir o cadastro no momento.'
             );
           },
         },
@@ -40,6 +40,7 @@ export const signup = async (userCredentials, dispatch) => {
   }
 };
 
+
 export const login = async (userCredentials, rememberMe=true, dispatch) => {
   dispatch({ type: authTypes.LOGIN_REQUEST });
 
@@ -52,7 +53,8 @@ export const login = async (userCredentials, rememberMe=true, dispatch) => {
         error: {
           render({ data }) {
             return (
-              data?.response?.data?.message || 'E-mail ou senha incorretos'
+              data?.response?.data?.message ||
+              'Não foi possível concluir o login no momento.'
             );
           },
         },
@@ -88,6 +90,7 @@ export const login = async (userCredentials, rememberMe=true, dispatch) => {
   }
 };
 
+
 export const logout = async (dispatch) => {
   dispatch({ type: authTypes.LOGOUT_REQUEST });
 
@@ -110,6 +113,7 @@ export const logout = async (dispatch) => {
     dispatch({ type: authTypes.LOGOUT_SUCCESS });
   }
 };
+
 
 export const requestPasswordReset = async (email, dispatch) => {
   dispatch({ type: authTypes.PASSWORD_RESET_REQUEST_REQUEST });
@@ -154,6 +158,7 @@ export const requestPasswordReset = async (email, dispatch) => {
     throw error;
   }
 };
+
 
 export const confirmPasswordReset = async (resetData, dispatch) => {
   dispatch({ type: authTypes.PASSWORD_RESET_CONFIRM_REQUEST });

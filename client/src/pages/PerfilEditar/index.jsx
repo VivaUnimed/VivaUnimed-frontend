@@ -2,10 +2,10 @@ import "./styles.css";
 import AppNav from "../../components/layouts/AppNav";
 import AppLogo from "../../components/layouts/AppLogo";
 import { useAuth } from "../../context/authContext/authContext";
-import { getProfileData, saveProfileData } from "../Perfil/profileData";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Calendar, Camera } from "lucide-react";
+import { getProfile, updateProfile } from "../../api/profileApi";
 
 const emptyForm = {
   name: "",
@@ -108,10 +108,37 @@ const validateForm = (formData) => {
 export default function PerfilEditar() {
   const { authState } = useAuth();
   const navigate = useNavigate();
-  const currentProfile = getProfileData(authState.user);
+  const [currentProfile, setCurrentProfile] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    cpf: "",
+    birthDate: "",
+  });
   const [formData, setFormData] = useState(emptyForm);
   const [errors, setErrors] = useState({});
   const currentPhone = getPhoneParts(currentProfile.phone);
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const data = await getProfile();
+        setCurrentProfile(data);
+        setFormData({
+          name: data.name || "",
+          email: data.email || "",
+          ddd: getPhoneParts(data.phone).ddd,
+          phoneNumber: getPhoneParts(data.phone).phoneNumber,
+          cpf: data.cpf || "",
+          birthDate: data.birthDate || "",
+        });
+      } catch (error) {
+        console.warn("Erro ao carregar perfil para edição:", error.message);
+      }
+    };
+
+    loadProfile();
+  }, []);
 
   const handleChange = ({ target: { name, value } }) => {
     let formattedValue = value;
@@ -137,7 +164,7 @@ export default function PerfilEditar() {
     }));
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     const validationErrors = validateForm(formData);
@@ -159,8 +186,13 @@ export default function PerfilEditar() {
       birthDate: formData.birthDate || currentProfile.birthDate,
     };
 
-    saveProfileData(updatedProfile);
-    navigate("/perfil");
+    try {
+      const savedProfile = await updateProfile(updatedProfile);
+      setCurrentProfile(savedProfile);
+      navigate("/perfil");
+    } catch (error) {
+      console.warn("Erro ao atualizar perfil:", error.message);
+    }
   };
 
   return (

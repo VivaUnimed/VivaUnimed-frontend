@@ -12,7 +12,7 @@ import { toast } from 'react-toastify';
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { login, demoLogin, authState } = useAuth();
+  const { login, authState } = useAuth();
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -34,12 +34,6 @@ export default function Login() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-
-    if (!email.trim() && !password.trim()) {
-      demoLogin();
-      navigate('/');
-      return;
-    }
 
     const userCredentials = {
       email,
@@ -65,6 +59,9 @@ export default function Login() {
                 <span>VivaUnimed</span>
               </h1>
               <p>Sua saúde, gerenciada com inteligência.</p>
+              <b></b>
+              <h2>**email teste: teste@a.com</h2>
+              <h2>**senha teste: 12345678</h2>
             </div>
 
             <InputField

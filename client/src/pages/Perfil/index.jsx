@@ -3,7 +3,8 @@ import AppNav from "../../components/layouts/AppNav";
 import AppLogo from "../../components/layouts/AppLogo";
 import { useAuth } from "../../context/authContext/authContext";
 import { useNavigate } from "react-router-dom";
-import { getProfileData } from "./profileData";
+import { useEffect, useState } from "react";
+import { getProfile } from "../../api/profileApi";
 
 import {
   ArrowLeft,
@@ -16,7 +17,26 @@ import {
 export default function Perfil() {
   const { logout, authState } = useAuth();
   const navigate = useNavigate();
-  const profileData = getProfileData(authState.user);
+  const [profileData, setProfileData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    cpf: "",
+    birthDate: "",
+  });
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const data = await getProfile();
+        setProfileData(data);
+      } catch (error) {
+        console.warn("Erro ao carregar perfil:", error.message);
+      }
+    };
+
+    loadProfile();
+  }, []);
 
   return (
     <div className="perfil-page">

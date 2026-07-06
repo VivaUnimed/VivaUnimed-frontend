@@ -1,7 +1,25 @@
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+
+const parseResponseBody = async (response) => {
+  const contentType = response.headers.get('content-type') || '';
+  const text = await response.text();
+
+  if (!text) {
+    return null;
+  }
+
+  if (contentType.includes('application/json')) {
+    try {
+      return JSON.parse(text);
+    } catch {
+      return text;
+    }
+  }
+
+  return text;
+};
 
 const handleResponse = async (response) => {
-
   // 1. Verifica se o token expirou ou é inválido
   if (response.status === 401) {
     localStorage.removeItem('token');
@@ -10,22 +28,27 @@ const handleResponse = async (response) => {
     // Redireciona para o login
     // Adicionado um parâmetro 'expired=true' para avisar o usuário depois
     if (window.location.pathname !== '/login') {
-        window.location.href = '/login?expired=true';
+      window.location.href = '/login?expired=true';
     }
-    
+
     throw new Error('Sessão expirada. Redirecionando...');
   }
 
   if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || 'Erro na requisição');
+    const errorData = await parseResponseBody(response);
+    const message =
+      typeof errorData === 'string'
+        ? errorData
+        : errorData?.message || 'Erro de comunicação com o servidor';
+
+    throw new Error(message);
   }
 
   if (response.status === 204) {
-    return null; 
+    return null;
   }
 
-  return response.json();
+  return parseResponseBody(response);
 };
 
 // Helper para centralizar os headers
