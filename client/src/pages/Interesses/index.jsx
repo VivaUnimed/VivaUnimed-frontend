@@ -1,7 +1,8 @@
 import "./styles.css";
 import AppNav from "../../components/layouts/AppNav";
 import AppLogo from "../../components/layouts/AppLogo";
-import { createElement, useState } from "react";
+import { createElement, useEffect, useState } from "react";
+import { toast } from "react-toastify";
 
 import {
   Search,
@@ -10,7 +11,6 @@ import {
   Baby,
   Plus,
   Minus,
-  Zap,
   Bone,
   Brain,
   Eye as EyeIcon,
@@ -19,99 +19,113 @@ import {
   Syringe,
   Ear,
   ScanHeart,
-  CirclePlus,
 } from "lucide-react";
+import { addInteresse, getInteresses, removeInteresse } from "../../api/interessesApi";
 
-const featuredInterests = [
-  {
-    id: "cardiologia",
-    name: "Cardiologia",
-    status: "3 VAGAS HOJE",
-    Icon: HeartPulse,
-  },
-  {
-    id: "ortopedia",
-    name: "Ortopedia",
-    status: "ALTA DEMANDA",
-    Icon: Stethoscope,
-  },
-  {
-    id: "pediatria",
-    name: "Pediatria",
-    status: "DISPONIVEL",
-    Icon: Baby,
-  },
-];
+const iconMap = {
+  Stethoscope,
+  HeartPulse,
+  Baby,
+  Bone,
+  Brain,
+  EyeIcon,
+  Smile,
+  Activity,
+  Syringe,
+  Ear,
+  ScanHeart,
+};
 
-const specialtyInterests = [
-  { id: "gastroenterologia", name: "Gastroenterologia", status: "ESPECIALIDADE", Icon: Stethoscope },
-  { id: "dermatologia", name: "Dermatologia", status: "ESPECIALIDADE", Icon: Smile },
-  { id: "neurologia", name: "Neurologia", status: "ESPECIALIDADE", Icon: Brain },
-  { id: "oftalmologia", name: "Oftalmologia", status: "ESPECIALIDADE", Icon: EyeIcon },
-  { id: "endocrinologia", name: "Endocrinologia", status: "ESPECIALIDADE", Icon: Activity },
-  { id: "ginecologia", name: "Ginecologia", status: "ESPECIALIDADE", Icon: Syringe },
-  { id: "otorrinolaringologia", name: "Otorrinolaringologia", status: "ESPECIALIDADE", Icon: Ear },
-  { id: "reumatologia", name: "Reumatologia", status: "ESPECIALIDADE", Icon: Bone },
-  { id: "urologia", name: "Urologia", status: "ESPECIALIDADE", Icon: Stethoscope },
-  { id: "psiquiatria", name: "Psiquiatria", status: "ESPECIALIDADE", Icon: Brain },
-  { id: "pneumologia", name: "Pneumologia", status: "ESPECIALIDADE", Icon: ScanHeart },
-  { id: "cirurgia-geral", name: "Cirurgia Geral", status: "ESPECIALIDADE", Icon: Stethoscope },
-  { id: "oncologia", name: "Oncologia", status: "ESPECIALIDADE", Icon: HeartPulse },
-  { id: "nefrologia", name: "Nefrologia", status: "ESPECIALIDADE", Icon: Syringe },
-  { id: "hepatologia", name: "Hepatologia", status: "ESPECIALIDADE", Icon: Stethoscope },
-  { id: "alergologia", name: "Alergologia", status: "ESPECIALIDADE", Icon: Activity },
-  { id: "imunologia", name: "Imunologia", status: "ESPECIALIDADE", Icon: Bone },
-  { id: "hematologia", name: "Hematologia", status: "ESPECIALIDADE", Icon: Stethoscope },
-  { id: "geriatria", name: "Geriatria", status: "ESPECIALIDADE", Icon: HeartPulse },
-  { id: "cirurgia-plastica", name: "Cirurgia Plástica", status: "ESPECIALIDADE", Icon: Smile },
-  { id: "radiologia", name: "Radiologia", status: "ESPECIALIDADE", Icon: ScanHeart },
-  { id: "patologia", name: "Patologia", status: "ESPECIALIDADE", Icon: Brain },
-  { id: "medicina-interna", name: "Medicina Interna", status: "ESPECIALIDADE", Icon: Stethoscope },
-  { id: "medicina-do-trabalho", name: "Medicina do Trabalho", status: "ESPECIALIDADE", Icon: Activity },
-  { id: "medicina-familia", name: "Medicina de Família", status: "ESPECIALIDADE", Icon: HeartPulse },
-  { id: "cardiologia-intervencao", name: "Cardiologia Intervencão", status: "ESPECIALIDADE", Icon: ScanHeart },
-  { id: "infectologia", name: "Infectologia", status: "ESPECIALIDADE", Icon: Syringe },
-  { id: "ortopedia-pediatrica", name: "Ortopedia Pediátrica", status: "ESPECIALIDADE", Icon: Bone },
-  { id: "cirurgia-cardiaca", name: "Cirurgia Cardíaca", status: "ESPECIALIDADE", Icon: HeartPulse },
-  { id: "medicina-esportiva", name: "Medicina Esportiva", status: "ESPECIALIDADE", Icon: Activity },
-];
+const getIconComponent = (iconName) => iconMap[iconName] || Stethoscope;
+const normalizeInterestId = (value) => String(value);
 
 export default function Interesses() {
-  const [selectedInterests, setSelectedInterests] = useState([]);
+  const [interesses, setInteresses] = useState([]);
   const [showAllSpecialties, setShowAllSpecialties] = useState(false);
   const [queuedInterests, setQueuedInterests] = useState([]);
+  const [isLoadingInteresses, setIsLoadingInteresses] = useState(false);
 
-  const toggleInterest = (interestId) => {
-    setSelectedInterests((currentInterests) =>
-      currentInterests.includes(interestId)
-        ? currentInterests.filter((id) => id !== interestId)
-        : [...currentInterests, interestId]
-    );
+  const loadInteresses = async () => {
+    try {
+      setIsLoadingInteresses(true);
+      const data = await getInteresses();
+      setInteresses(data);
+    } catch (error) {
+      toast.error(error.message || "Não foi possível carregar seus interesses no momento.");
+    } finally {
+      setIsLoadingInteresses(false);
+    }
   };
 
-  const allInterests = [...featuredInterests, ...specialtyInterests];
+  useEffect(() => {
+    void loadInteresses();
+  }, []);
+
+  const selectedInterests = interesses.filter(({ selected }) => selected);
   const selectedCount = selectedInterests.length;
-  const selectedCards = allInterests.filter(({ id }) =>
-    selectedInterests.includes(id)
-  );
-  // Show up to 8 unselected interests by default; when "Ver todas" is active show all
-  const unselectedInterests = allInterests.filter(({ id }) => !selectedInterests.includes(id));
+  const selectedCards = selectedInterests;
+  const unselectedInterests = interesses.filter(({ selected }) => !selected);
   const visibleTags = showAllSpecialties
     ? unselectedInterests
     : unselectedInterests.slice(0, 8);
 
+  const handleToggleInterest = async (interestId) => {
+    const normalizedId = normalizeInterestId(interestId);
+    const existingInterest = interesses.find(({ id }) => normalizeInterestId(id) === normalizedId);
+
+    if (!existingInterest) {
+      return;
+    }
+
+    if (existingInterest.selected) {
+      try {
+        await removeInteresse(normalizedId);
+        await loadInteresses();
+        setQueuedInterests((currentQueue) =>
+          currentQueue.filter((queuedId) => normalizeInterestId(queuedId) !== normalizedId)
+        );
+      } catch (error) {
+        toast.error(error.message || "Não foi possível remover o interesse no momento.");
+      }
+
+      return;
+    }
+
+    const previousInteresses = interesses;
+
+    setInteresses((currentInteresses) =>
+      currentInteresses.map((interest) =>
+        normalizeInterestId(interest.id) === normalizedId
+          ? { ...interest, selected: true }
+          : interest
+      )
+    );
+
+    try {
+      await addInteresse(normalizedId);
+      await loadInteresses();
+    } catch (error) {
+      setInteresses(previousInteresses);
+      toast.error(error.message || "Não foi possível adicionar o interesse no momento.");
+    }
+  };
+
   const handleEnterQueue = () => {
-    setQueuedInterests(selectedInterests);
+    setQueuedInterests(selectedInterests.map(({ id }) => normalizeInterestId(id)));
   };
 
   const handleLeaveQueue = () => {
     setQueuedInterests([]);
   };
 
-  const displayedSelectedCards = selectedCards.filter(({ id }) => !queuedInterests.includes(id));
+  const displayedSelectedCards = selectedCards.filter(
+    ({ id }) => !queuedInterests.includes(normalizeInterestId(id))
+  );
 
   const removeFromQueue = (interestId) => {
-    setQueuedInterests((q) => q.filter((i) => i !== interestId));
+    setQueuedInterests((currentQueue) =>
+      currentQueue.filter((queuedId) => normalizeInterestId(queuedId) !== normalizeInterestId(interestId))
+    );
   };
 
   return (
@@ -137,7 +151,6 @@ export default function Interesses() {
             </p>
           </section>
 
-          {/* Fila fixa logo abaixo do título */}
           {queuedInterests.length > 0 && (
             <div className="fila-header">
               <span>Na fila de espera</span>
@@ -147,14 +160,17 @@ export default function Interesses() {
 
           <section className="fila-container">
             {queuedInterests.map((id) => {
-              const item = allInterests.find((it) => it.id === id);
+              const item = interesses.find(
+                (interest) => normalizeInterestId(interest.id) === normalizeInterestId(id)
+              );
               if (!item) return null;
-              const { name, Icon, status } = item;
+              const { name, status, iconName } = item;
+              const IconComponent = getIconComponent(iconName);
 
               return (
                 <div key={id} className="fila-card">
                   <div className="fila-left">
-                    <div className="interesse-icon green">{createElement(Icon, { size: 16 })}</div>
+                    <div className="interesse-icon green">{createElement(IconComponent, { size: 16 })}</div>
                     <div className="fila-info">
                       <strong>{name}</strong>
                       <span className="fila-status">{status}</span>
@@ -174,45 +190,67 @@ export default function Interesses() {
             })}
           </section>
 
-              <section className="interesses-grid">
-                {displayedSelectedCards.map(({ id, name, status, Icon }) => {
-                  return (
-                    <div key={id} className="interesse-card active">
-                      <div className="interesse-top-row">
-                        <div className={`interesse-icon green`}>{createElement(Icon, { size: 18 })}</div>
+          <section className="interesses-grid">
+            {displayedSelectedCards.map(({ id, name, status, iconName }) => {
+              const IconComponent = getIconComponent(iconName);
 
-                        <button
-                          type="button"
-                          className="interesse-remove-btn"
-                          aria-label={`Remover ${name}`}
-                          onClick={() => {
-                            toggleInterest(id);
-                            setQueuedInterests((q) => q.filter((i) => i !== id));
-                          }}
-                        >
-                          <Minus size={16} />
-                        </button>
-                      </div>
+              return (
+                <div key={id} className="interesse-card active">
+                  <div className="interesse-top-row">
+                    <div className="interesse-icon green">{createElement(IconComponent, { size: 18 })}</div>
 
-                      <div className="interesse-content-box">
-                        <h3>{name}</h3>
-                        <span>{status}</span>
-                      </div>
-                    </div>
-                  );
-                })}
+                    <button
+                      type="button"
+                      className="interesse-remove-btn"
+                      aria-label={`Remover ${name}`}
+                      onClick={() => {
+                        void handleToggleInterest(id);
+                      }}
+                    >
+                      <Minus size={16} />
+                    </button>
+                  </div>
 
-                {/* If no selected cards, show a placeholder message or small hint */}
-                {displayedSelectedCards.length === 0 && (
-                  <div className="interesse-empty">Selecione um interesse abaixo</div>
-                )}
-              </section>
+                  <div className="interesse-content-box">
+                    <h3>{name}</h3>
+                    <span>{status}</span>
+                  </div>
+                </div>
+              );
+            })}
+
+            {displayedSelectedCards.length === 0 && !isLoadingInteresses && (
+              <div className="interesse-empty">Selecione um interesse abaixo</div>
+            )}
+          </section>
+
+          <section className="interesses-tags">
+            {visibleTags.map(({ id, name, iconName, selected }) => {
+              const IconComponent = getIconComponent(iconName);
+
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  className="tag-button"
+                  aria-pressed={selected}
+                  onClick={() => {
+                    void handleToggleInterest(id);
+                  }}
+                >
+                  <div className="tag-icon">{IconComponent ? createElement(IconComponent, { size: 14 }) : null}</div>
+                  <span className="tag-name">{name}</span>
+                  <div className="tag-action">
+                    <Plus size={14} />
+                  </div>
+                </button>
+              );
+            })}
+          </section>
 
           <button
             type="button"
-            className={`interesses-toggle-btn ${
-              showAllSpecialties ? "active" : ""
-            }`}
+            className={`interesses-toggle-btn ${showAllSpecialties ? "active" : ""}`}
             aria-expanded={showAllSpecialties}
             onClick={() => setShowAllSpecialties((isShowing) => !isShowing)}
           >
@@ -220,35 +258,13 @@ export default function Interesses() {
             <Plus size={16} />
           </button>
 
-          <section className="interesses-tags">
-            {visibleTags.map(({ id, name, Icon }) => (
-              <button
-                key={id}
-                type="button"
-                className="tag-button"
-                aria-pressed={false}
-                onClick={() => toggleInterest(id)}
-              >
-                <div className="tag-icon">{Icon ? createElement(Icon, { size: 14 }) : null}</div>
-                <span className="tag-name">{name}</span>
-                <div className="tag-action">
-                  <Plus size={14} />
-                </div>
-              </button>
-            ))}
-          </section>
-
           <button
             type="button"
             className="interesses-main-btn"
             disabled={selectedCount === 0}
             onClick={handleEnterQueue}
           >
-            {selectedCount > 0
-              ? `Entrar na Fila (${selectedCount})`
-                : "Selecione interesses"}
-
-            <Zap size={16} fill="white" />
+            {selectedCount > 0 ? `Entrar na Fila (${selectedCount})` : "Selecione interesses"}
           </button>
         </main>
 
