@@ -2,6 +2,10 @@ import "./styles.css";
 import AppNav from "../../components/layouts/AppNav";
 import AppLogo from "../../components/layouts/AppLogo";
 import { useEffect, useRef, useState } from "react";
+import {
+  getNotificacoesRecentes,
+  getVagasTempoReal,
+} from "../../api/alarmesApi";
 
 import {
   Search,
@@ -19,6 +23,10 @@ export default function Alertas() {
   const [isCriticalHidden, setIsCriticalHidden] = useState(false);
   const [showCriticalHero, setShowCriticalHero] = useState(true);
   const [activeTab, setActiveTab] = useState("recentes");
+  const [notificacoesRecentes, setNotificacoesRecentes] = useState([]);
+  const [vagasTempoReal, setVagasTempoReal] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const tabs = [
     { key: "recentes", label: "Recentes" },
@@ -48,6 +56,144 @@ export default function Alertas() {
       contentNode?.removeEventListener("scroll", handleScroll);
     };
   }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadAlertData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const [notificacoes, vagas] = await Promise.all([
+          getNotificacoesRecentes(),
+          getVagasTempoReal(),
+        ]);
+
+        if (!isMounted) {
+          return;
+        }
+
+        setNotificacoesRecentes(notificacoes || []);
+        setVagasTempoReal(vagas || []);
+      } catch (err) {
+        if (!isMounted) {
+          return;
+        }
+
+        setError(err.message || "Não foi possível carregar os alertas.");
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadAlertData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const renderNotificationIcon = (tipo) => {
+    const normalizedTipo = (tipo || "").toLowerCase();
+
+    if (normalizedTipo.includes("vaga") || normalizedTipo.includes("agendamento")) {
+      return <Bell size={16} />;
+    }
+
+    if (normalizedTipo.includes("confirm")) {
+      return <ClipboardCheck size={16} />;
+    }
+
+    if (normalizedTipo.includes("atraso") || normalizedTipo.includes("alert")) {
+      return <TriangleAlert size={16} />;
+    }
+
+    if (normalizedTipo.includes("resultado") || normalizedTipo.includes("exame")) {
+      return <FileCheck2 size={16} />;
+    }
+
+    if (normalizedTipo.includes("saude") || normalizedTipo.includes("hidrat")) {
+      return <Droplets size={16} />;
+    }
+
+    return <Bell size={16} />;
+  };
+
+  const getNotificationClassName = (prioridade, lida) => {
+    const normalizedPrioridade = (prioridade || "").toLowerCase();
+
+    if (lida) {
+      return "alerta-item";
+    }
+
+    if (normalizedPrioridade.includes("alta") || normalizedPrioridade.includes("urgente") || normalizedPrioridade.includes("crítica")) {
+      return "alerta-item warning";
+    }
+
+    if (normalizedPrioridade.includes("media") || normalizedPrioridade.includes("média")) {
+      return "alerta-item";
+    }
+
+    return "alerta-item success";
+  };
+
+  const getNotificationLabelClassName = (prioridade, lida) => {
+    const normalizedPrioridade = (prioridade || "").toLowerCase();
+
+    if (lida) {
+      return "alerta-label gray";
+    }
+
+    if (normalizedPrioridade.includes("alta") || normalizedPrioridade.includes("urgente") || normalizedPrioridade.includes("crítica")) {
+      return "alerta-label red";
+    }
+
+    if (normalizedPrioridade.includes("media") || normalizedPrioridade.includes("média")) {
+      return "alerta-label gray";
+    }
+
+    return "alerta-label green";
+  };
+
+  const getNotificationIconClassName = (prioridade, lida) => {
+    const normalizedPrioridade = (prioridade || "").toLowerCase();
+
+    if (lida) {
+      return "gray";
+    }
+
+    if (normalizedPrioridade.includes("alta") || normalizedPrioridade.includes("urgente") || normalizedPrioridade.includes("crítica")) {
+      return "red";
+    }
+
+    if (normalizedPrioridade.includes("media") || normalizedPrioridade.includes("média")) {
+      return "gray";
+    }
+
+    return "green";
+  };
+
+  const formatDateTime = (value) => {
+    if (!value) {
+      return "";
+    }
+
+    const dateValue = new Date(value);
+
+    if (Number.isNaN(dateValue.getTime())) {
+      return value;
+    }
+
+    return dateValue.toLocaleString("pt-BR", {
+      day: "2-digit",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
   return (
     <div className="alertas-page">
@@ -141,163 +287,40 @@ export default function Alertas() {
 
           {/* ALERT LIST */}
           <section className="alertas-list">
-
-            {/* ALERTA 1 */}
-            <div className="alerta-item success">
-
-              <div className="alerta-item-icon green">
-                <Bell size={16} />
-              </div>
-
-              <div className="alerta-item-content">
-
-                <div className="alerta-item-top">
-                  <span className="alerta-label green">
-                    VAGA DISPONÍVEL
-                  </span>
-
-                  <small>Agora</small>
+            {loading && <p>Carregando notificações...</p>}
+            {!loading && error && <p>{error}</p>}
+            {!loading && !error && notificacoesRecentes.length === 0 && (
+              <p>Nenhuma notificação recente.</p>
+            )}
+            {!loading && !error && notificacoesRecentes.map((notificacao) => (
+              <div key={notificacao.id || notificacao.title || notificacao.mensagem} className={getNotificationClassName(notificacao.prioridade, notificacao.lida)}>
+                <div className={`alerta-item-icon ${getNotificationIconClassName(notificacao.prioridade, notificacao.lida)}`}>
+                  {renderNotificationIcon(notificacao.tipo)}
                 </div>
 
-                <h4>Cardiologia hoje às 15:45</h4>
+                <div className="alerta-item-content">
+                  <div className="alerta-item-top">
+                    <span className={`alerta-label ${getNotificationLabelClassName(notificacao.prioridade, notificacao.lida)}`}>
+                      {(notificacao.tipo || "NOTIFICAÇÃO").toUpperCase()}
+                    </span>
 
-                <p>
-                  Uma nova vaga surgiu por cancelamento
-                  na Unidade Litoral Sul.
-                </p>
+                    <small>{formatDateTime(notificacao.data || notificacao.horario || notificacao.createdAt)}</small>
+                  </div>
 
-                <div className="alerta-actions">
+                  <h4>{notificacao.titulo || notificacao.title || "Notificação"}</h4>
 
-                  <button className="btn-green">
-                    Agendar
-                  </button>
+                  <p>{notificacao.mensagem || notificacao.message || "Sem descrição disponível."}</p>
 
-                  <button className="btn-gray">
-                    Ignorar
-                  </button>
-
+                  {(notificacao.titulo || notificacao.message || notificacao.mensagem) && (
+                    <div className="alerta-actions">
+                      <button className="btn-green">
+                        Ver detalhes
+                      </button>
+                    </div>
+                  )}
                 </div>
-
               </div>
-
-            </div>
-
-            {/* ALERTA 2 */}
-            <div className="alerta-item">
-
-              <div className="alerta-item-icon gray">
-                <ClipboardCheck size={16} />
-              </div>
-
-              <div className="alerta-item-content">
-
-                <div className="alerta-item-top">
-                  <span className="alerta-label gray">
-                    CONFIRMAÇÃO
-                  </span>
-
-                  <small>2h atrás</small>
-                </div>
-
-                <h4>Confirmação de agendamento</h4>
-
-                <p>
-                  Seu check-up com Dr. Ricardo foi
-                  confirmado para amanhã às 08:00.
-                </p>
-
-              </div>
-
-            </div>
-
-            {/* ALERTA 3 */}
-            <div className="alerta-item warning">
-
-              <div className="alerta-item-icon red">
-                <TriangleAlert size={16} />
-              </div>
-
-              <div className="alerta-item-content">
-
-                <div className="alerta-item-top">
-                  <span className="alerta-label red">
-                    ATRASO NOTIFICADO
-                  </span>
-
-                  <small>4h atrás</small>
-                </div>
-
-                <h4>Atraso na Pediatria</h4>
-
-                <p>
-                  A unidade reporta 20 minutos de atraso
-                  médio. Planeje sua chegada.
-                </p>
-
-              </div>
-
-            </div>
-
-            {/* ALERTA 4 */}
-            <div className="alerta-item hidden-alerta">
-
-              <div className="alerta-item-icon light">
-                <Droplets size={16} />
-              </div>
-
-              <div className="alerta-item-content">
-
-                <div className="alerta-item-top">
-                  <span className="alerta-label light">
-                    DICA DE SAÚDE
-                  </span>
-
-                  <small>Ontem</small>
-                </div>
-
-                <h4>Hidratação e Exames</h4>
-
-                <p>
-                  Mantenha-se hidratado para o seu exame
-                  de sangue de quinta-feira.
-                </p>
-
-              </div>
-
-            </div>
-
-            {/* ALERTA 5 */}
-            <div className="alerta-item success hidden-alerta">
-
-              <div className="alerta-item-icon green">
-                <FileCheck2 size={16} />
-              </div>
-
-              <div className="alerta-item-content">
-
-                <div className="alerta-item-top">
-                  <span className="alerta-label green">
-                    RESULTADOS
-                  </span>
-
-                  <small>Ontem</small>
-                </div>
-
-                <h4>Exames laboratoriais prontos</h4>
-
-                <p>
-                  Seus resultados de Hemograma e Glicemia
-                  já estão disponíveis no app.
-                </p>
-
-                <button className="alerta-link-btn">
-                  Ver resultados ↗
-                </button>
-
-              </div>
-
-            </div>
-
+            ))}
           </section>
           </>
           )}
@@ -321,126 +344,45 @@ export default function Alertas() {
 
             </div>
 
-            {/* CARD */}
-            <div className="vaga-card success">
-
-              <div className="vaga-profile">
-
-                <div className="vaga-profile-image"></div>
-
-                <div>
-                  <h4>Dra. Ana Silva</h4>
-                  <span>CARDIOLOGIA</span>
-                </div>
-
-              </div>
-
-              <div className="vaga-footer">
-
-                <div className="vaga-time">
-
-                  <small>HORÁRIO DISPONÍVEL</small>
-
-                  <div>
-                    <Clock3 size={16} />
-                    <strong>15:45</strong>
-                  </div>
-
-                </div>
-
-                <div className="vaga-buttons">
-
-                  <button className="btn-accept">
-                    Aceitar
-                  </button>
-
-                  <button className="btn-reject">
-                    Recusar
-                  </button>
-
-                </div>
-
-              </div>
-
-            </div>
-
-            {/* CARD */}
-            <div className="vaga-card neutral">
-
-              <div className="vaga-profile">
-
-                <div className="vaga-profile-image"></div>
-
-                <div>
-                  <h4>Dr. Marcos Lima</h4>
-                  <span>ORTOPEDIA</span>
-                </div>
-
-              </div>
-
-              <div className="vaga-footer">
-
-                <div className="vaga-time">
-
-                  <small>HORÁRIO DISPONÍVEL</small>
-
-                  <div>
-                    <Clock3 size={16} />
-                    <strong>15:45</strong>
-                  </div>
-
-                </div>
-
-                <button className="btn-accept">
-                  Aceite Rápido
-                </button>
-
-              </div>
-
-            </div>
-
-            {/* CARD */}
-            <div className="vaga-card urgent">
-
-              <div className="vaga-top-row">
-
+            {loading && <p>Carregando vagas...</p>}
+            {!loading && error && <p>{error}</p>}
+            {!loading && !error && vagasTempoReal.length === 0 && (
+              <p>Nenhuma vaga disponível no momento.</p>
+            )}
+            {!loading && !error && vagasTempoReal.map((vaga) => (
+              <div key={vaga.id || vaga.especialidade || vaga.profissional} className={`vaga-card ${vaga.status?.toLowerCase() === "urgente" ? "urgent" : vaga.status?.toLowerCase() === "disponivel" ? "success" : "neutral"}`}>
                 <div className="vaga-profile">
-
                   <div className="vaga-profile-image"></div>
 
                   <div>
-                    <h4>Dra. Julia Costa</h4>
-                    <span>PEDIATRIA</span>
+                    <h4>{vaga.profissional || vaga.professional || "Profissional"}</h4>
+                    <span>{(vaga.especialidade || vaga.specialty || "ESPECIALIDADE").toUpperCase()}</span>
+                  </div>
+                </div>
+
+                <div className="vaga-footer">
+                  <div className="vaga-time">
+                    <small>HORÁRIO DISPONÍVEL</small>
+
+                    <div>
+                      <Clock3 size={16} />
+                      <strong>{vaga.horario || vaga.time || "--:--"}</strong>
+                    </div>
                   </div>
 
-                </div>
-
-                <div className="vaga-tag">
-                  URGENTE
-                </div>
-
-              </div>
-
-              <div className="vaga-footer">
-
-                <div className="vaga-time">
-
-                  <small>HORÁRIO DISPONÍVEL</small>
-
-                  <div>
-                    <Clock3 size={16} />
-                    <strong>16:30</strong>
+                  <div className="vaga-buttons">
+                    <button className="btn-accept">
+                      {vaga.status || "Disponível"}
+                    </button>
+                    {vaga.prioridade && (
+                      <button className="btn-reject">
+                        {vaga.prioridade}
+                      </button>
+                    )}
                   </div>
-
                 </div>
-
-                <button className="btn-accept">
-                  Aceite Rápido
-                </button>
-
               </div>
-
-            </div>
+            ))}
 
           </section>
           </>
