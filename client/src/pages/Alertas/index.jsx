@@ -3,8 +3,13 @@ import AppNav from "../../components/layouts/AppNav";
 import AppLogo from "../../components/layouts/AppLogo";
 import { useEffect, useRef, useState } from "react";
 import {
+  getAlertaUrgente,
   getNotificacoesRecentes,
+  getNotificacoesConsultas,
   getVagasTempoReal,
+  getResultadosExames,
+  getInformativos,
+  aceitarVaga,
 } from "../../api/alarmesApi";
 
 import {
@@ -21,18 +26,14 @@ import {
 export default function Alertas() {
   const contentRef = useRef(null);
   const [isCriticalHidden, setIsCriticalHidden] = useState(false);
-  const [showCriticalHero, setShowCriticalHero] = useState(true);
-  const [activeTab, setActiveTab] = useState("recentes");
-  const [notificacoesRecentes, setNotificacoesRecentes] = useState([]);
+  const [alertaUrgente, setAlertaUrgente] = useState(null);
+  //const [consultas, setConsultas] = useState([]);
   const [vagasTempoReal, setVagasTempoReal] = useState([]);
+  //const [exames, setExames] = useState([]);
+  //const [informativos, setInformativos] = useState([]);
+  const [acceptingVagaId, setAcceptingVagaId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  const tabs = [
-    { key: "recentes", label: "Recentes" },
-    { key: "vagas", label: "Vagas em tempo real" },
-    { key: "exames", label: "Exames e relatorios" },
-  ];
 
   useEffect(() => {
     const contentNode = contentRef.current;
@@ -65,17 +66,24 @@ export default function Alertas() {
         setLoading(true);
         setError(null);
 
-        const [notificacoes, vagas] = await Promise.all([
+        const [alertaUrgenteData, , vagas] = await Promise.all([
+          getAlertaUrgente(),
           getNotificacoesRecentes(),
+          getNotificacoesConsultas(),
           getVagasTempoReal(),
+          getResultadosExames(),
+          getInformativos(),
         ]);
 
         if (!isMounted) {
           return;
         }
 
-        setNotificacoesRecentes(notificacoes || []);
+        setAlertaUrgente(alertaUrgenteData);
+        //setConsultas(consultasList || []);
         setVagasTempoReal(vagas || []);
+        //setExames(examesList || []);
+        //setInformativos(informativosList || []);
       } catch (err) {
         if (!isMounted) {
           return;
@@ -96,103 +104,24 @@ export default function Alertas() {
     };
   }, []);
 
-  const renderNotificationIcon = (tipo) => {
-    const normalizedTipo = (tipo || "").toLowerCase();
-
-    if (normalizedTipo.includes("vaga") || normalizedTipo.includes("agendamento")) {
-      return <Bell size={16} />;
+  const handleAceitarVaga = async (vagaId) => {
+    if (!vagaId) {
+      return;
     }
 
-    if (normalizedTipo.includes("confirm")) {
-      return <ClipboardCheck size={16} />;
+    try {
+      setAcceptingVagaId(vagaId);
+      await aceitarVaga(vagaId);
+      setVagasTempoReal((current) =>
+        current.map((vaga) =>
+          vaga.id === vagaId ? { ...vaga, status: 'Aceita' } : vaga
+        )
+      );
+    } catch (err) {
+      setError(err.message || 'Não foi possível aceitar a vaga.');
+    } finally {
+      setAcceptingVagaId(null);
     }
-
-    if (normalizedTipo.includes("atraso") || normalizedTipo.includes("alert")) {
-      return <TriangleAlert size={16} />;
-    }
-
-    if (normalizedTipo.includes("resultado") || normalizedTipo.includes("exame")) {
-      return <FileCheck2 size={16} />;
-    }
-
-    if (normalizedTipo.includes("saude") || normalizedTipo.includes("hidrat")) {
-      return <Droplets size={16} />;
-    }
-
-    return <Bell size={16} />;
-  };
-
-  const getNotificationClassName = (prioridade, lida) => {
-    const normalizedPrioridade = (prioridade || "").toLowerCase();
-
-    if (lida) {
-      return "alerta-item";
-    }
-
-    if (normalizedPrioridade.includes("alta") || normalizedPrioridade.includes("urgente") || normalizedPrioridade.includes("crítica")) {
-      return "alerta-item warning";
-    }
-
-    if (normalizedPrioridade.includes("media") || normalizedPrioridade.includes("média")) {
-      return "alerta-item";
-    }
-
-    return "alerta-item success";
-  };
-
-  const getNotificationLabelClassName = (prioridade, lida) => {
-    const normalizedPrioridade = (prioridade || "").toLowerCase();
-
-    if (lida) {
-      return "alerta-label gray";
-    }
-
-    if (normalizedPrioridade.includes("alta") || normalizedPrioridade.includes("urgente") || normalizedPrioridade.includes("crítica")) {
-      return "alerta-label red";
-    }
-
-    if (normalizedPrioridade.includes("media") || normalizedPrioridade.includes("média")) {
-      return "alerta-label gray";
-    }
-
-    return "alerta-label green";
-  };
-
-  const getNotificationIconClassName = (prioridade, lida) => {
-    const normalizedPrioridade = (prioridade || "").toLowerCase();
-
-    if (lida) {
-      return "gray";
-    }
-
-    if (normalizedPrioridade.includes("alta") || normalizedPrioridade.includes("urgente") || normalizedPrioridade.includes("crítica")) {
-      return "red";
-    }
-
-    if (normalizedPrioridade.includes("media") || normalizedPrioridade.includes("média")) {
-      return "gray";
-    }
-
-    return "green";
-  };
-
-  const formatDateTime = (value) => {
-    if (!value) {
-      return "";
-    }
-
-    const dateValue = new Date(value);
-
-    if (Number.isNaN(dateValue.getTime())) {
-      return value;
-    }
-
-    return dateValue.toLocaleString("pt-BR", {
-      day: "2-digit",
-      month: "short",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
   };
 
   return (
@@ -208,15 +137,6 @@ export default function Alertas() {
 
           </div>
 
-<button
-          type="button"
-          className={`alerta-toggle-btn ${showCriticalHero ? "on" : "off"}`}
-          onClick={() => setShowCriticalHero((current) => !current)}
-          aria-pressed={showCriticalHero}
-        >
-          Balão: {showCriticalHero ? "ON" : "OFF"}
-        </button>
-
         <button className="alertas-search-btn">
           <Search size={18} />
         </button>
@@ -224,13 +144,10 @@ export default function Alertas() {
         </header>
 
         {/* CONTENT */}
-        <main
-          className={`alertas-content ${showCriticalHero ? "" : "hero-hidden"}`}
-          ref={contentRef}
-        >
+        <main ref={contentRef}>
 
           {/* HERO ALERT */}
-          {showCriticalHero && (
+          {alertaUrgente?.ativo === true && (
             <section
               className={`alerta-hero ${
                 isCriticalHidden ? "alerta-hero-hidden" : ""
@@ -241,15 +158,17 @@ export default function Alertas() {
                 <span>ALERTA</span>
               </div>
 
-              <h1>Oportunidade Crítica</h1>
+              <h1>{alertaUrgente?.titulo}</h1>
 
-              <p>
-                Vaga aberta agora em Cardiologia para hoje às 15:45.
-                Expira em instantes.
-              </p>
+              <p>{alertaUrgente?.mensagem}</p>
 
-              <button className="alerta-hero-btn">
-                Aceitar Vaga Agora
+              <button
+                type="button"
+                className="alerta-hero-btn"
+                onClick={() => handleAceitarVaga(vagasTempoReal[0]?.id)}
+                disabled={acceptingVagaId != null || vagasTempoReal.length === 0}
+              >
+                {alertaUrgente?.botao}
                 <ChevronRight size={16} />
               </button>
 
@@ -257,77 +176,6 @@ export default function Alertas() {
             </section>
           )}
 
-          <section className="alertas-tabs" aria-label="Tipos de alertas">
-            {tabs.map((tab) => (
-              <button
-                key={tab.key}
-                type="button"
-                className={`alertas-tab ${
-                  activeTab === tab.key ? "active" : ""
-                }`}
-                onClick={() => setActiveTab(tab.key)}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </section>
-
-          {activeTab === "recentes" && (
-          <>
-          {/* SECTION TITLE */}
-          <section className="alertas-section-title">
-
-            <h3>Recentes</h3>
-
-            <button>
-              Marcar todas como lidas
-            </button>
-
-          </section>
-
-          {/* ALERT LIST */}
-          <section className="alertas-list">
-            {loading && <p>Carregando notificações...</p>}
-            {!loading && error && <p>{error}</p>}
-            {!loading && !error && notificacoesRecentes.length === 0 && (
-              <p>Nenhuma notificação recente.</p>
-            )}
-            {!loading && !error && notificacoesRecentes.map((notificacao) => (
-              <div key={notificacao.id || notificacao.title || notificacao.mensagem} className={getNotificationClassName(notificacao.prioridade, notificacao.lida)}>
-                <div className={`alerta-item-icon ${getNotificationIconClassName(notificacao.prioridade, notificacao.lida)}`}>
-                  {renderNotificationIcon(notificacao.tipo)}
-                </div>
-
-                <div className="alerta-item-content">
-                  <div className="alerta-item-top">
-                    <span className={`alerta-label ${getNotificationLabelClassName(notificacao.prioridade, notificacao.lida)}`}>
-                      {(notificacao.tipo || "NOTIFICAÇÃO").toUpperCase()}
-                    </span>
-
-                    <small>{formatDateTime(notificacao.data || notificacao.horario || notificacao.createdAt)}</small>
-                  </div>
-
-                  <h4>{notificacao.titulo || notificacao.title || "Notificação"}</h4>
-
-                  <p>{notificacao.mensagem || notificacao.message || "Sem descrição disponível."}</p>
-
-                  {(notificacao.titulo || notificacao.message || notificacao.mensagem) && (
-                    <div className="alerta-actions">
-                      <button className="btn-green">
-                        Ver detalhes
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </section>
-          </>
-          )}
-
-          {activeTab === "vagas" && (
-          <>
-          {/* LIVE VACANCIES */}
           <section className="tempo-real-section">
 
             <div className="tempo-real-title">
@@ -371,8 +219,15 @@ export default function Alertas() {
                   </div>
 
                   <div className="vaga-buttons">
-                    <button className="btn-accept">
-                      {vaga.status || "Disponível"}
+                    <button
+                      type="button"
+                      className="btn-accept"
+                      onClick={() => handleAceitarVaga(vaga.id)}
+                      disabled={acceptingVagaId === vaga.id}
+                    >
+                      {acceptingVagaId === vaga.id
+                        ? 'Aceitando...'
+                        : vaga.status || 'Disponível'}
                     </button>
                     {vaga.prioridade && (
                       <button className="btn-reject">
@@ -385,115 +240,6 @@ export default function Alertas() {
             ))}
 
           </section>
-          </>
-          )}
-
-          {activeTab === "exames" && (
-          <>
-          <section className="alertas-section-title">
-
-            <h3>Exames e relatorios</h3>
-
-            <button>
-              Marcar todas como lidas
-            </button>
-
-          </section>
-
-          <section className="alertas-list">
-
-            <div className="alerta-item success">
-
-              <div className="alerta-item-icon green">
-                <FileCheck2 size={16} />
-              </div>
-
-              <div className="alerta-item-content">
-
-                <div className="alerta-item-top">
-                  <span className="alerta-label green">
-                    RESULTADOS
-                  </span>
-
-                  <small>Ontem</small>
-                </div>
-
-                <h4>Exames laboratoriais prontos</h4>
-
-                <p>
-                  Seus resultados de Hemograma e Glicemia
-                  ja estao disponiveis no app.
-                </p>
-
-                <button className="alerta-link-btn">
-                  Ver resultados
-                </button>
-
-              </div>
-
-            </div>
-
-            <div className="alerta-item">
-
-              <div className="alerta-item-icon gray">
-                <ClipboardCheck size={16} />
-              </div>
-
-              <div className="alerta-item-content">
-
-                <div className="alerta-item-top">
-                  <span className="alerta-label gray">
-                    RELATORIO
-                  </span>
-
-                  <small>2 dias atras</small>
-                </div>
-
-                <h4>Relatorio de consulta liberado</h4>
-
-                <p>
-                  O resumo da sua consulta com a endocrinologia
-                  foi atualizado para revisao.
-                </p>
-
-                <button className="alerta-link-btn">
-                  Abrir relatorio
-                </button>
-
-              </div>
-
-            </div>
-
-            <div className="alerta-item">
-
-              <div className="alerta-item-icon light">
-                <Droplets size={16} />
-              </div>
-
-              <div className="alerta-item-content">
-
-                <div className="alerta-item-top">
-                  <span className="alerta-label light">
-                    DICA DE SAUDE
-                  </span>
-
-                  <small>Ontem</small>
-                </div>
-
-                <h4>Hidratacao e Exames</h4>
-
-                <p>
-                  Mantenha-se hidratado para o seu exame
-                  de sangue de quinta-feira.
-                </p>
-
-              </div>
-
-            </div>
-
-          </section>
-          </>
-          )}
 
         </main>
 

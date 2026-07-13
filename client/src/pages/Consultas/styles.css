@@ -68,14 +68,14 @@
 }
 
 .consultas-title-group h2 {
-  font-size: 28px;
+  font-size: 2.8rem;
   color: #222;
   margin-bottom: 4px;
   font-weight: 700;
 }
 
 .consultas-title-group p {
-  font-size: 14px;
+  font-size: 1.4rem;
   color: #666;
 }
 
@@ -87,10 +87,9 @@
 
 .consulta-item {
   background: #f7f7f7;
-  border-radius: 14px;
-  padding: 14px;
-
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
 }
 
 .consulta-top-tags {

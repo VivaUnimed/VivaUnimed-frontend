@@ -10,37 +10,60 @@ import {
   MapPin,
   X,
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-
-const consultasDetalhes = {
-  'ana-silva': {
-    medico: 'Dra. Ana Silva',
-    especialidade: 'Cardiologia',
-    data: 'Hoje',
-    hora: '14:15',
-    local: 'Unidade Litoral Sul',
-  },
-  'amanda-costa': {
-    medico: 'Dra. Amanda Costa',
-    especialidade: 'Dermatologia',
-    data: 'Amanha',
-    hora: '09:30',
-    local: 'Unidade Litoral Sul',
-  },
-  'marcos-lima': {
-    medico: 'Dr. Marcos Lima',
-    especialidade: 'Ortopedia',
-    data: '24 de out',
-    hora: '15:40',
-    local: 'Unidade Central',
-  },
-};
+import { getConsultaDetalhes } from '../../api/consultasApi';
 
 export default function ConsultaDetalhes() {
   const navigate = useNavigate();
   const { consultaId } = useParams();
-  const consulta =
-    consultasDetalhes[consultaId] || consultasDetalhes['marcos-lima'];
+  const [consulta, setConsulta] = useState(null);
+  const [isLoading, setIsLoading] = useState(Boolean(consultaId));
+  const [errorMessage, setErrorMessage] = useState(
+    consultaId ? '' : 'Consulta não informada.',
+  );
+
+  useEffect(() => {
+    let isMounted = true;
+
+    if (!consultaId) {
+      return () => {
+        isMounted = false;
+      };
+    }
+
+    const loadConsulta = async () => {
+      setIsLoading(true);
+      setErrorMessage('');
+
+      try {
+        const data = await getConsultaDetalhes(consultaId);
+
+        if (isMounted) {
+          setConsulta(data);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setConsulta(null);
+          setErrorMessage(
+            error.message || 'Não foi possível carregar os detalhes desta consulta.',
+          );
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    loadConsulta();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [consultaId]);
+
+  const consultaData = consulta || {};
 
   return (
     <div className="consulta-detalhes-page">
@@ -70,11 +93,23 @@ export default function ConsultaDetalhes() {
             <div className="consulta-doctor-info">
               <small>ESPECIALIDADE</small>
 
-              <h2>{consulta.medico}</h2>
+              <h2>
+                {isLoading
+                  ? 'Carregando...'
+                  : consultaData.medico || 'Consulta não encontrada'}
+              </h2>
 
-              <span>{consulta.especialidade}</span>
+              <span>
+                {isLoading
+                  ? 'Carregando...'
+                  : consultaData.especialidade || 'Não informado'}
+              </span>
             </div>
           </section>
+
+          {!isLoading && errorMessage && (
+            <p className="consulta-status-message">{errorMessage}</p>
+          )}
 
           <section className="consulta-info-grid">
             <div className="consulta-info-box">
@@ -83,7 +118,11 @@ export default function ConsultaDetalhes() {
                 <span>DATA</span>
               </div>
 
-              <strong>{consulta.data}</strong>
+              <strong>
+                {isLoading
+                  ? 'Carregando...'
+                  : consultaData.data || 'Não informado'}
+              </strong>
             </div>
 
             <div className="consulta-info-box">
@@ -92,7 +131,11 @@ export default function ConsultaDetalhes() {
                 <span>HORA</span>
               </div>
 
-              <strong>{consulta.hora}</strong>
+              <strong>
+                {isLoading
+                  ? 'Carregando...'
+                  : consultaData.hora || 'Não informado'}
+              </strong>
             </div>
           </section>
 
@@ -103,7 +146,11 @@ export default function ConsultaDetalhes() {
                 <span>LOCALIZACAO</span>
               </div>
 
-              <h3>{consulta.local}</h3>
+              <h3>
+                {isLoading
+                  ? 'Carregando...'
+                  : consultaData.local || 'Não informado'}
+              </h3>
             </div>
 
             <button type="button" className="consulta-map-btn">

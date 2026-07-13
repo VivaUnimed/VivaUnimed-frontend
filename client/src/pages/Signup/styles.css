@@ -26,22 +26,22 @@
 .signup-paciente-content {
   flex: 1;
   width: 100%;
-  padding: 0 24px 30px;
+  padding: 0 18px 24px;
   display: flex;
   flex-direction: column;
 }
 
 .signup-paciente-title-group {
-  margin-bottom: 30px;
-  margin-top: 10px;
+  margin-bottom: 24px;
+  margin-top: 8px;
 }
 
 .signup-paciente-title-group h1 {
-  font-size: 42px;
-  line-height: 1.05;
-  font-weight: 600;
+  font-size: 2.8rem;
+  line-height: 1.08;
+  font-weight: 700;
   color: #1f2937;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .signup-paciente-title-group h1 > span {
@@ -51,19 +51,19 @@
 }
 
 .signup-paciente-title-group p {
-  font-size: 15px;
+  font-size: 1.4rem;
   color: #4b5563;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 
 .signup-paciente-form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 .signup-paciente-security {
-  margin-top: 40px;
+  margin-top: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -76,7 +76,7 @@
 }
 
 .signup-paciente-footer {
-  padding: 20px 24px 28px;
+  padding: 16px 18px 24px;
   text-align: center;
 }
 
