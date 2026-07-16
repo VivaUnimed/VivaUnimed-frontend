@@ -2,7 +2,7 @@ import "./styles.css";
 import AppNav from "../../components/layouts/AppNav";
 import AppLogo from "../../components/layouts/AppLogo";
 import { useAuth } from "../../context/authContext/authContext";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { getProfile } from "../../api/profileApi";
 
@@ -14,18 +14,26 @@ import {
   LogOut,
 } from "lucide-react";
 
+const emptyProfile = {
+  name: "",
+  email: "",
+  phone: "",
+  cpf: "",
+  birthDate: "",
+};
+
 export default function Perfil() {
   const { logout, authState } = useAuth();
   const navigate = useNavigate();
-  const [profileData, setProfileData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    cpf: "",
-    birthDate: "",
-  });
+  const location = useLocation();
+  const profileFromNavigation = location.state?.profileData;
+  const [profileData, setProfileData] = useState(
+    profileFromNavigation || emptyProfile
+  );
 
   useEffect(() => {
+    if (profileFromNavigation) return;
+
     const loadProfile = async () => {
       try {
         const data = await getProfile();
@@ -36,7 +44,7 @@ export default function Perfil() {
     };
 
     loadProfile();
-  }, []);
+  }, [profileFromNavigation]);
 
   return (
     <div className="perfil-page">

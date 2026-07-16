@@ -31,7 +31,12 @@ export const updateProfile = async (profileData) => {
     };
 
     const data = await putRequest('/usuarios/me', payload);
-    return normalizeProfile(data || payload);
+
+    if (!data || typeof data !== 'object') {
+      throw new Error('O servidor não retornou os dados atualizados do perfil.');
+    }
+
+    return normalizeProfile(data);
   } catch (error) {
     throw new Error(error.message);
   }

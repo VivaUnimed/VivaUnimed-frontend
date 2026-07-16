@@ -1,11 +1,15 @@
 import "./styles.css";
 import AppNav from "../../components/layouts/AppNav";
 import AppLogo from "../../components/layouts/AppLogo";
-import { useAuth } from "../../context/authContext/authContext";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Calendar, Camera } from "lucide-react";
 import { getProfile, updateProfile } from "../../api/profileApi";
+import {
+  buildSanitizedProfilePayload,
+  formatBirthDateInput,
+  validateProfileForm,
+} from "../../utils/profileValidation";
 
 const emptyForm = {
   name: "",
@@ -47,66 +51,7 @@ const getPhoneParts = (phone = "") => {
   };
 };
 
-const isValidDate = (value) => {
-  const match = value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-  if (!match) return false;
-
-  const [, dayText, monthText, yearText] = match;
-  const day = Number(dayText);
-  const month = Number(monthText);
-  const year = Number(yearText);
-
-  if (month < 1 || month > 12 || year < 1900) return false;
-
-  const maximumDay = new Date(year, month, 0).getDate();
-  return day >= 1 && day <= maximumDay;
-};
-
-const validateForm = (formData) => {
-  const errors = {};
-  const filledName = formData.name.trim();
-  const filledEmail = formData.email.trim();
-  const ddd = onlyNumbers(formData.ddd);
-  const phoneNumber = onlyNumbers(formData.phoneNumber);
-
-  if (
-    filledName &&
-    !filledName
-      .split(/\s+/)
-      .every((word) => /^\p{Lu}[\p{L}'’-]*$/u.test(word))
-  ) {
-    errors.name = "Todas as palavras devem começar com letra maiúscula.";
-  }
-
-  if (
-    filledEmail &&
-    !/^[^\s@]+@[^\s@]+\.(?:com|br)$/i.test(filledEmail)
-  ) {
-    errors.email = "Informe um e-mail válido terminado em .com ou .br.";
-  }
-
-  if ((ddd || phoneNumber) && ddd.length !== 2) {
-    errors.ddd = "O DDD deve ter 2 números.";
-  }
-
-  if ((ddd || phoneNumber) && ![8, 9].includes(phoneNumber.length)) {
-    errors.phoneNumber = "O telefone deve ter 8 ou 9 números.";
-  }
-
-  if (formData.cpf && !/^\d{3}\.\d{3}\.\d{3}-\d{2}$/.test(formData.cpf)) {
-    errors.cpf = "Use exatamente o formato XXX.XXX.XXX-XX.";
-  }
-
-  if (formData.birthDate && !isValidDate(formData.birthDate)) {
-    errors.birthDate =
-      "Informe uma data válida no formato DD/MM/AAAA.";
-  }
-
-  return errors;
-};
-
 export default function PerfilEditar() {
-  const { authState } = useAuth();
   const navigate = useNavigate();
   const [currentProfile, setCurrentProfile] = useState({
     name: "",
@@ -117,6 +62,8 @@ export default function PerfilEditar() {
   });
   const [formData, setFormData] = useState(emptyForm);
   const [errors, setErrors] = useState({});
+  const [submitError, setSubmitError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const currentPhone = getPhoneParts(currentProfile.phone);
 
   useEffect(() => {
@@ -146,12 +93,7 @@ export default function PerfilEditar() {
     if (name === "ddd") formattedValue = onlyNumbers(value).slice(0, 2);
     if (name === "phoneNumber") formattedValue = formatPhone(value);
     if (name === "cpf") formattedValue = formatCpf(value);
-    if (name === "birthDate") {
-      formattedValue = onlyNumbers(value)
-        .slice(0, 8)
-        .replace(/^(\d{2})(\d)/, "$1/$2")
-        .replace(/^(\d{2})\/(\d{2})(\d)/, "$1/$2/$3");
-    }
+    if (name === "birthDate") formattedValue = formatBirthDateInput(value);
 
     setFormData((currentData) => ({
       ...currentData,
@@ -160,38 +102,34 @@ export default function PerfilEditar() {
 
     setErrors((currentErrors) => ({
       ...currentErrors,
-      [name]: undefined,
+      [name === "phoneNumber" ? "phone" : name]: undefined,
     }));
+    setSubmitError("");
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    const validationErrors = validateForm(formData);
+    const validationErrors = validateProfileForm(formData);
     setErrors(validationErrors);
+    setSubmitError("");
 
     if (Object.keys(validationErrors).length > 0) return;
 
-    const ddd = onlyNumbers(formData.ddd);
-    const phoneNumber = onlyNumbers(formData.phoneNumber);
-    const hasNewPhone = ddd || phoneNumber;
-
-    const updatedProfile = {
-      name: formData.name.trim() || currentProfile.name,
-      email: formData.email.trim() || currentProfile.email,
-      phone: hasNewPhone
-        ? `(${ddd}) ${formatPhone(phoneNumber)}`
-        : currentProfile.phone,
-      cpf: formData.cpf || currentProfile.cpf,
-      birthDate: formData.birthDate || currentProfile.birthDate,
-    };
+    setIsSubmitting(true);
 
     try {
+      const updatedProfile = buildSanitizedProfilePayload(formData, currentProfile);
       const savedProfile = await updateProfile(updatedProfile);
       setCurrentProfile(savedProfile);
-      navigate("/perfil");
+      navigate("/perfil", { replace: true, state: { profileData: savedProfile } });
     } catch (error) {
       console.warn("Erro ao atualizar perfil:", error.message);
+      setSubmitError(
+        error.message || "Não foi possível salvar as alterações. Tente novamente."
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -263,7 +201,7 @@ export default function PerfilEditar() {
               <label htmlFor="profile-phone">WHATSAPP / TELEFONE</label>
 
               <div className="perfil-phone-inputs">
-                <div className={`perfil-phone-field perfil-ddd-field ${errors.ddd ? "has-error" : ""}`}>
+                <div className={`perfil-phone-field perfil-ddd-field ${errors.phone ? "has-error" : ""}`}>
                   <input
                     id="profile-ddd"
                     name="ddd"
@@ -273,12 +211,12 @@ export default function PerfilEditar() {
                     placeholder={currentPhone.ddd}
                     onChange={handleChange}
                     aria-label="DDD"
-                    aria-invalid={Boolean(errors.ddd)}
+                    aria-invalid={Boolean(errors.phone)}
                   />
                   <span className="perfil-phone-field-label">DDD</span>
                 </div>
 
-                <div className={`perfil-phone-field ${errors.phoneNumber ? "has-error" : ""}`}>
+                <div className={`perfil-phone-field ${errors.phone ? "has-error" : ""}`}>
                   <input
                     id="profile-phone"
                     name="phoneNumber"
@@ -288,16 +226,14 @@ export default function PerfilEditar() {
                     placeholder={currentPhone.phoneNumber}
                     onChange={handleChange}
                     aria-label="Número do telefone"
-                    aria-invalid={Boolean(errors.phoneNumber)}
+                    aria-invalid={Boolean(errors.phone)}
                   />
                   <span className="perfil-phone-field-label">NÚMERO</span>
                 </div>
               </div>
 
-              {(errors.ddd || errors.phoneNumber) && (
-                <span className="perfil-field-error">
-                  {errors.ddd || errors.phoneNumber}
-                </span>
+              {errors.phone && (
+                <span className="perfil-field-error">{errors.phone}</span>
               )}
             </div>
 
@@ -340,9 +276,15 @@ export default function PerfilEditar() {
               )}
             </div>
 
-            <button type="submit" className="perfil-save-btn">
-              Salvar alterações
+            <button type="submit" className="perfil-save-btn" disabled={isSubmitting}>
+              {isSubmitting ? "Salvando..." : "Salvar alterações"}
             </button>
+
+            {submitError && (
+              <span className="perfil-submit-error" role="alert">
+                {submitError}
+              </span>
+            )}
 
             <button
               type="button"
