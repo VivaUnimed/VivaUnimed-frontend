@@ -3,32 +3,30 @@ import { postRequest } from './api';
 import { toast } from 'react-toastify';
 
 
+/* --------------------------------------------------------------------------
+ *  SIGN UP  –  POST /patient/signup
+ * ------------------------------------------------------------------------*/
 export const signup = async (userCredentials, dispatch) => {
   dispatch({ type: authTypes.SIGNUP_REQUEST });
 
   try {
     const data = await toast.promise(
-      postRequest('/usuarios/signup', userCredentials),
+      postRequest('/patient/signup', userCredentials),   // ⬅ rota pública
       {
         pending: 'Criando sua conta...',
         success: 'Conta criada com sucesso!',
-        error: {
-          render({ data }) {
-            return (
-              data?.response?.data?.message ||
-              data?.message ||
-              'Não foi possível concluir o cadastro no momento.'
-            );
-          },
-        },
+        error: { render({ data }) {
+          return (
+            data?.response?.data?.message ||
+            data?.message ||
+            'Não foi possível concluir o cadastro no momento.'
+          );
+        }},
       },
     );
 
-    if (!data) {
-      throw new Error('Resposta inválida do servidor');
-    }
-
-    const { message } = data;
+    const { message } = data || {};
+    if (!message) throw new Error('Resposta inválida do servidor');
 
     dispatch({ type: authTypes.SIGNUP_SUCCESS, payload: { message } });
   } catch (error) {
@@ -40,13 +38,22 @@ export const signup = async (userCredentials, dispatch) => {
   }
 };
 
-
-export const login = async (userCredentials, rememberMe=true, dispatch) => {
+/* --------------------------------------------------------------------------
+ *  LOGIN  –  POST /auth/login
+ * ------------------------------------------------------------------------*/
+export const login = async (
+  userCredentials,
+  rememberMe = true,
+  dispatch,
+) => {
   dispatch({ type: authTypes.LOGIN_REQUEST });
 
   try {
     const data = await toast.promise(
-      postRequest('/usuarios/login', userCredentials),
+      postRequest('/api/auth/login', userCredentials, {
+        withAuth: false,
+        skipUnauthorizedRedirect: true,
+      }),
       {
         pending: 'Autenticando...',
         success: 'Login realizado!',
@@ -54,6 +61,7 @@ export const login = async (userCredentials, rememberMe=true, dispatch) => {
           render({ data }) {
             return (
               data?.response?.data?.message ||
+              data?.message ||
               'Não foi possível concluir o login no momento.'
             );
           },
@@ -61,19 +69,34 @@ export const login = async (userCredentials, rememberMe=true, dispatch) => {
       },
     );
 
-    if (!data || !data.token || !data.user) {
-      throw new Error('Resposta inválida do servidor');
+    const responseData = data?.data || data;
+
+    const token =
+      responseData?.token ||
+      responseData?.accessToken ||
+      responseData?.access_token;
+
+    if (!token) {
+      throw new Error('Token não encontrado na resposta do servidor');
     }
 
-    const { token, user } = data;
+    const user =
+      responseData?.user ||
+      responseData?.usuario ||
+      responseData?.patient ||
+      responseData?.paciente ||
+      {
+        id: responseData?.id,
+        name: responseData?.name,
+        cpf: responseData?.cpf,
+        email: responseData?.email,
+        phone: responseData?.phone,
+      };
 
-    if (rememberMe) {
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-    } else {
-      sessionStorage.setItem('token', token);
-      sessionStorage.setItem('user', JSON.stringify(user));
-    }
+    const storage = rememberMe ? localStorage : sessionStorage;
+
+    storage.setItem('token', token);
+    storage.setItem('user', JSON.stringify(user));
 
     dispatch({
       type: authTypes.LOGIN_SUCCESS,
@@ -82,76 +105,14 @@ export const login = async (userCredentials, rememberMe=true, dispatch) => {
         user,
       },
     });
+
+    return {
+      token,
+      user,
+    };
   } catch (error) {
     dispatch({
       type: authTypes.LOGIN_FAILURE,
-      payload: { error: error.message },
-    });
-  }
-};
-
-
-export const logout = async (dispatch) => {
-  dispatch({ type: authTypes.LOGOUT_REQUEST });
-
-  try {
-    await toast.promise(postRequest('/usuarios/logout', {}), {
-      pending: 'Saindo...',
-      error: {
-        render({ data }) {
-          return data?.response?.data?.message || 'Nao foi possivel sair no servidor';
-        },
-      },
-    });
-  } catch (error) {
-    console.warn('Falha ao invalidar token no servidor:', error.message);
-  } finally {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    sessionStorage.removeItem('token');
-    sessionStorage.removeItem('user');
-    dispatch({ type: authTypes.LOGOUT_SUCCESS });
-  }
-};
-
-
-export const requestPasswordReset = async (email, dispatch) => {
-  dispatch({ type: authTypes.PASSWORD_RESET_REQUEST_REQUEST });
-
-  try {
-    const data = await toast.promise(
-      postRequest('/usuarios/reset-password-request', { email }),
-      {
-        pending: 'Enviando código de recuperação...',
-        success: 'Código de recuperação enviado com sucesso!',
-        error: {
-          render({ data }) {
-            return (
-              data?.response?.data?.message ||
-              data?.message ||
-              'Não foi possível enviar o código de recuperação.'
-            );
-          },
-        },
-      },
-    );
-
-    if (!data) {
-      throw new Error('Resposta inválida do servidor');
-    }
-
-    const { message } = data;
-
-    dispatch({
-      type: authTypes.PASSWORD_RESET_REQUEST_SUCCESS,
-      payload: { message, email },
-    });
-
-    return data;
-
-  } catch (error) {
-    dispatch({
-      type: authTypes.PASSWORD_RESET_REQUEST_FAILURE,
       payload: { error: error.message },
     });
 
@@ -159,46 +120,93 @@ export const requestPasswordReset = async (email, dispatch) => {
   }
 };
 
+/* --------------------------------------------------------------------------
+ *  LOGOUT  –  POST /auth/logout   (opcional no backend)
+ * ------------------------------------------------------------------------*/
+export const logout = async (dispatch) => {
+  dispatch({ type: authTypes.LOGOUT_REQUEST });
+
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+
+  sessionStorage.removeItem('token');
+  sessionStorage.removeItem('user');
+
+  dispatch({ type: authTypes.LOGOUT_SUCCESS });
+};
+
+/* --------------------------------------------------------------------------
+ *  PASSWORD RESET
+ *  (as duas funções permaneceram iguais – só mude /auth/... se precisar)
+ * ------------------------------------------------------------------------*/
+export const requestPasswordReset = async (email, dispatch) => {
+  dispatch({ type: authTypes.PASSWORD_RESET_REQUEST_REQUEST });
+
+  try {
+    const data = await toast.promise(
+      postRequest('/api/auth/reset-password-request', { email }),
+      {
+        pending: 'Enviando código de recuperação...',
+        success: 'Código de recuperação enviado!',
+        error: { render({ data }) {
+          return (
+            data?.response?.data?.message ||
+            data?.message ||
+            'Não foi possível enviar o código de recuperação.'
+          );
+        }},
+      },
+    );
+
+    const { message } = data || {};
+    if (!message) throw new Error('Resposta inválida do servidor');
+
+    dispatch({
+      type: authTypes.PASSWORD_RESET_REQUEST_SUCCESS,
+      payload: { message, email },
+    });
+    return data;
+  } catch (error) {
+    dispatch({
+      type: authTypes.PASSWORD_RESET_REQUEST_FAILURE,
+      payload: { error: error.message },
+    });
+    throw error;
+  }
+};
 
 export const confirmPasswordReset = async (resetData, dispatch) => {
   dispatch({ type: authTypes.PASSWORD_RESET_CONFIRM_REQUEST });
 
   try {
     const data = await toast.promise(
-      postRequest('/usuarios/reset-password-confirm', resetData),
+      postRequest('/api/auth/reset-password-confirm', resetData),
       {
-        pending: 'Validando Token e Redefinindo senha...',
+        pending: 'Validando token e redefinindo senha...',
         success: 'Senha redefinida com sucesso!',
-        error: {
-          render({ data }) {
-            return (
-              data?.response?.data?.message ||
-              data?.message ||
-              'Não foi possível redefinir a senha.'
-            );
-          },
-        },
+        error: { render({ data }) {
+          return (
+            data?.response?.data?.message ||
+            data?.message ||
+            'Não foi possível redefinir a senha.'
+          );
+        }},
       },
     );
 
-    if (!data) {
-      throw new Error('Resposta inválida do servidor');
-    }
-
-    const { message } = data;
+    const { message } = data || {};
+    if (!message) throw new Error('Resposta inválida do servidor');
 
     dispatch({
       type: authTypes.PASSWORD_RESET_CONFIRM_SUCCESS,
       payload: { message },
     });
-
     return data;
   } catch (error) {
     dispatch({
       type: authTypes.PASSWORD_RESET_CONFIRM_FAILURE,
       payload: { error: error.message },
     });
-
     throw error;
   }
 };

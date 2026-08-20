@@ -33,15 +33,19 @@ export default function Login() {
   }, [location]);
 
   const handleLogin = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    const userCredentials = {
-      email,
-      password,
-    };
-
-    await login(userCredentials);
+  const userCredentials = {
+    email,
+    password,
   };
+
+  try {
+    await login(userCredentials, true);
+  } catch (error) {
+    toast.error(error.message || 'Erro ao fazer login.');
+  }
+};
 
   return (
     <div className="login-paciente-page">
@@ -60,8 +64,6 @@ export default function Login() {
               </h1>
               <p>Sua saúde, gerenciada com inteligência.</p>
               <b></b>
-              <h2>**email teste: teste@a.com</h2>
-              <h2>**senha teste: 12345678</h2>
             </div>
 
             <InputField
@@ -83,6 +85,7 @@ export default function Login() {
               onForgotPassword={() => navigate('/reset-password')}
               value={password}
               onChange={handlePasswordChange}
+              autoComplete="current-password"
             />
 
             <Button type="submit" variant="primary" disabled={authState.isAuthenticating}>

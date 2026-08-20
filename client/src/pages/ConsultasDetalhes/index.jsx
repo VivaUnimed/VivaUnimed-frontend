@@ -1,6 +1,7 @@
 import './styles.css';
 import AppNav from '../../components/layouts/AppNav';
 import AppLogo from '../../components/layouts/AppLogo';
+import UserAvatar from '../../components/ui/UserAvatar';
 import {
   Calendar,
   CheckCircle2,
@@ -10,60 +11,37 @@ import {
   MapPin,
   X,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { getConsultaDetalhes } from '../../api/consultasApi';
+
+const consultasDetalhes = {
+  'ana-silva': {
+    medico: 'Dra. Ana Silva',
+    especialidade: 'Cardiologia',
+    data: 'Hoje',
+    hora: '14:15',
+    local: 'Unidade Litoral Sul',
+  },
+  'amanda-costa': {
+    medico: 'Dra. Amanda Costa',
+    especialidade: 'Dermatologia',
+    data: 'Amanha',
+    hora: '09:30',
+    local: 'Unidade Litoral Sul',
+  },
+  'marcos-lima': {
+    medico: 'Dr. Marcos Lima',
+    especialidade: 'Ortopedia',
+    data: '24 de out',
+    hora: '15:40',
+    local: 'Unidade Central',
+  },
+};
 
 export default function ConsultaDetalhes() {
   const navigate = useNavigate();
   const { consultaId } = useParams();
-  const [consulta, setConsulta] = useState(null);
-  const [isLoading, setIsLoading] = useState(Boolean(consultaId));
-  const [errorMessage, setErrorMessage] = useState(
-    consultaId ? '' : 'Consulta não informada.',
-  );
-
-  useEffect(() => {
-    let isMounted = true;
-
-    if (!consultaId) {
-      return () => {
-        isMounted = false;
-      };
-    }
-
-    const loadConsulta = async () => {
-      setIsLoading(true);
-      setErrorMessage('');
-
-      try {
-        const data = await getConsultaDetalhes(consultaId);
-
-        if (isMounted) {
-          setConsulta(data);
-        }
-      } catch (error) {
-        if (isMounted) {
-          setConsulta(null);
-          setErrorMessage(
-            error.message || 'Não foi possível carregar os detalhes desta consulta.',
-          );
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    loadConsulta();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [consultaId]);
-
-  const consultaData = consulta || {};
+  const consulta =
+    consultasDetalhes[consultaId] || consultasDetalhes['marcos-lima'];
 
   return (
     <div className="consulta-detalhes-page">
@@ -73,7 +51,7 @@ export default function ConsultaDetalhes() {
             <AppLogo size="small" />
           </div>
 
-          <div className="consulta-detalhes-avatar"></div>
+          <UserAvatar />
         </header>
 
         <div className="consulta-detalhes-background"></div>
@@ -93,23 +71,11 @@ export default function ConsultaDetalhes() {
             <div className="consulta-doctor-info">
               <small>ESPECIALIDADE</small>
 
-              <h2>
-                {isLoading
-                  ? 'Carregando...'
-                  : consultaData.medico || 'Consulta não encontrada'}
-              </h2>
+              <h2>{consulta.medico}</h2>
 
-              <span>
-                {isLoading
-                  ? 'Carregando...'
-                  : consultaData.especialidade || 'Não informado'}
-              </span>
+              <span>{consulta.especialidade}</span>
             </div>
           </section>
-
-          {!isLoading && errorMessage && (
-            <p className="consulta-status-message">{errorMessage}</p>
-          )}
 
           <section className="consulta-info-grid">
             <div className="consulta-info-box">
@@ -118,11 +84,7 @@ export default function ConsultaDetalhes() {
                 <span>DATA</span>
               </div>
 
-              <strong>
-                {isLoading
-                  ? 'Carregando...'
-                  : consultaData.data || 'Não informado'}
-              </strong>
+              <strong>{consulta.data}</strong>
             </div>
 
             <div className="consulta-info-box">
@@ -131,11 +93,7 @@ export default function ConsultaDetalhes() {
                 <span>HORA</span>
               </div>
 
-              <strong>
-                {isLoading
-                  ? 'Carregando...'
-                  : consultaData.hora || 'Não informado'}
-              </strong>
+              <strong>{consulta.hora}</strong>
             </div>
           </section>
 
@@ -146,11 +104,7 @@ export default function ConsultaDetalhes() {
                 <span>LOCALIZACAO</span>
               </div>
 
-              <h3>
-                {isLoading
-                  ? 'Carregando...'
-                  : consultaData.local || 'Não informado'}
-              </h3>
+              <h3>{consulta.local}</h3>
             </div>
 
             <button type="button" className="consulta-map-btn">

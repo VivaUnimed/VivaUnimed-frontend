@@ -1,4 +1,4 @@
-import { useReducer } from 'react';
+import { useCallback, useReducer } from 'react';
 import { authReducer } from './authReducer';
 import { authInitialState } from './authInitialState';
 import { authContext as AuthContext } from './authContext.js';
@@ -41,37 +41,39 @@ export default function AuthProvider({ children }) {
   );
   const navigate = useNavigate();
 
-  const login = async (userCredentials, rememberMe) => {
-    const isTestLogin =
-      userCredentials?.email === 'teste@a.com' &&
-      userCredentials?.password === '12345678';
+  const login = async (userCredentials, rememberMe = true) => {
+  const isTestLogin =
+    userCredentials?.email === 'teste@a.com' &&
+    userCredentials?.password === '12345678';
 
-    if (isTestLogin) {
-      const token = 'test-token';
-      const user = {
-        id: 'test-user',
-        name: 'Usuário Teste',
-        email: userCredentials.email,
-      };
+  if (isTestLogin) {
+    const token = 'test-token';
+    const user = {
+      id: 'test-user',
+      name: 'Usuário Teste',
+      email: userCredentials.email,
+    };
 
-      if (rememberMe) {
-        localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify(user));
-      } else {
-        sessionStorage.setItem('token', token);
-        sessionStorage.setItem('user', JSON.stringify(user));
-      }
-
-      authDispatch({
-        type: authTypes.LOGIN_SUCCESS,
-        payload: { token, user },
-      });
-      navigate('/');
-      return;
+    if (rememberMe) {
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+    } else {
+      sessionStorage.setItem('token', token);
+      sessionStorage.setItem('user', JSON.stringify(user));
     }
 
-    await authApi.login(userCredentials, rememberMe, authDispatch);
-  };
+    authDispatch({
+      type: authTypes.LOGIN_SUCCESS,
+      payload: { token, user },
+    });
+
+    navigate('/consultas', { replace: true });
+    return;
+  }
+
+  await authApi.login(userCredentials, rememberMe, authDispatch);
+  navigate('/consultas', { replace: true });
+};
 
   const demoLogin = () => {
     const token = 'demo-token';
@@ -103,6 +105,29 @@ export default function AuthProvider({ children }) {
     navigate('/login');
   };
 
+  const updateUser = useCallback((userData) => {
+    const storedUser =
+      localStorage.getItem('user') || sessionStorage.getItem('user');
+    let currentUser = {};
+
+    try {
+      currentUser = storedUser ? JSON.parse(storedUser) : {};
+    } catch {
+      currentUser = {};
+    }
+
+    const user = { ...currentUser, ...userData };
+    const storage = localStorage.getItem('token')
+      ? localStorage
+      : sessionStorage;
+
+    storage.setItem('user', JSON.stringify(user));
+    authDispatch({
+      type: authTypes.USER_UPDATED,
+      payload: { user },
+    });
+  }, []);
+
   const requestPasswordReset = async (email) => {
     return await authApi.requestPasswordReset(email, authDispatch);
   };
@@ -118,6 +143,7 @@ export default function AuthProvider({ children }) {
         authDispatch,
         login,
         demoLogin,
+        updateUser,
         signup,
         logout,
         requestPasswordReset,

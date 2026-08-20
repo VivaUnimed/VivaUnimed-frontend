@@ -1,50 +1,43 @@
 import "./styles.css";
 import AppNav from "../../components/layouts/AppNav";
 import AppLogo from "../../components/layouts/AppLogo";
+import UserAvatar from "../../components/ui/UserAvatar";
 import { useAuth } from "../../context/authContext/authContext";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { getProfile } from "../../api/profileApi";
 
 import {
   ArrowLeft,
-  Camera,
   Calendar,
   Pencil,
   LogOut,
 } from "lucide-react";
 
-const emptyProfile = {
-  name: "",
-  email: "",
-  phone: "",
-  cpf: "",
-  birthDate: "",
-};
-
 export default function Perfil() {
-  const { logout, authState } = useAuth();
+  const { logout, authState, updateUser } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
-  const profileFromNavigation = location.state?.profileData;
-  const [profileData, setProfileData] = useState(
-    profileFromNavigation || emptyProfile
-  );
+  const [profileData, setProfileData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    cpf: "",
+    birthDate: "",
+  });
 
   useEffect(() => {
-    if (profileFromNavigation) return;
-
     const loadProfile = async () => {
       try {
         const data = await getProfile();
         setProfileData(data);
+        updateUser(data);
       } catch (error) {
         console.warn("Erro ao carregar perfil:", error.message);
       }
     };
 
     loadProfile();
-  }, [profileFromNavigation]);
+  }, [updateUser]);
 
   return (
     <div className="perfil-page">
@@ -65,16 +58,8 @@ export default function Perfil() {
         <main className="perfil-content">
           <section className="perfil-photo-section">
             <div className="perfil-photo-wrapper">
-              <div className="perfil-photo"></div>
-
-              <button type="button" className="perfil-camera-btn">
-                <Camera size={16} />
-              </button>
+              <UserAvatar className="user-avatar-large" />
             </div>
-
-            <button type="button" className="perfil-change-photo-btn">
-              TROCAR FOTO
-            </button>
           </section>
 
           <form className="perfil-form">

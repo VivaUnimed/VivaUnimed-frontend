@@ -1,9 +1,9 @@
 import "./styles.css";
 import AppNav from "../../components/layouts/AppNav";
 import AppLogo from "../../components/layouts/AppLogo";
+import UserAvatar from "../../components/ui/UserAvatar";
 
 import {
-  Search,
   Clock3,
 } from "lucide-react";
 
@@ -19,9 +19,7 @@ export default function VagasDisponiveis() {
             <AppLogo size="small" />
           </div>
 
-          <button className="vagas-search-btn">
-            <Search size={20} />
-          </button>
+          <UserAvatar />
 
         </header>
 

@@ -1,6 +1,7 @@
 import './styles.css';
 import AppNav from '../../components/layouts/AppNav';
 import AppLogo from '../../components/layouts/AppLogo';
+import UserAvatar from '../../components/ui/UserAvatar';
 import { CalendarDays, MapPin, Menu } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
@@ -43,7 +44,7 @@ export default function MinhasConsultas() {
             <AppLogo size="small" />
           </div>
 
-          <div className="consultas-avatar"></div>
+          <UserAvatar />
         </header>
 
         <main className="consultas-content">

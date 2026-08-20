@@ -1,13 +1,12 @@
 .button {
   width: 100%;
   height: 56px;
-  border-radius: 14px;
-  font-size: 1.6rem;
+  border-radius: 16px;
+  font-size: 18px;
   font-weight: 700;
   cursor: pointer;
   transition: 0.2s ease;
   border: none;
-  letter-spacing: 0.01em;
 }
 
 .button:disabled {
@@ -16,14 +15,14 @@
 }
 
 .button--primary {
-  background: #0a8f4c;
+  background: #008f4c;
   color: #ffffff;
   margin-top: 8px;
-  box-shadow: 0 8px 20px rgba(10, 143, 76, 0.18);
+  box-shadow: 0 6px 14px rgba(0, 143, 76, 0.18);
 }
 
 .button--secondary {
-  background: #f7f7f7;
+  background: #f3f4f6;
   color: #0d7a45;
   border: 1px solid #e5e7eb;
 }

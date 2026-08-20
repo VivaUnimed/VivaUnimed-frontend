@@ -50,12 +50,7 @@
   width: 34px;
   height: 34px;
   border-radius: 50%;
-
-  background: linear-gradient(
-    135deg,
-    #d1d5db,
-    #9ca3af
-  );
+  background: linear-gradient(135deg, #d1d5db, #9ca3af);
 }
 
 .consultas-content {
@@ -68,14 +63,14 @@
 }
 
 .consultas-title-group h2 {
-  font-size: 2.8rem;
+  font-size: 28px;
   color: #222;
   margin-bottom: 4px;
   font-weight: 700;
 }
 
 .consultas-title-group p {
-  font-size: 1.4rem;
+  font-size: 14px;
   color: #666;
 }
 
@@ -87,9 +82,10 @@
 
 .consulta-item {
   background: #f7f7f7;
-  border-radius: 16px;
-  padding: 16px;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+  border-radius: 14px;
+  padding: 14px;
+
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
 }
 
 .consulta-top-tags {

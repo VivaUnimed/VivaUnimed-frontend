@@ -32,6 +32,12 @@ export const authReducer = (state, action) => {
         isLoading: false,
       };
 
+    case authTypes.USER_UPDATED:
+      return {
+        ...state,
+        user: action.payload.user,
+      };
+
     // logout
     case authTypes.LOGOUT_REQUEST:
       return {

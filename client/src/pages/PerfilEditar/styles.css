@@ -27,16 +27,6 @@
   line-height: 1.35;
 }
 
-.perfil-submit-error {
-  display: block;
-  margin: -12px 26px 14px;
-  color: #b42318;
-  font-size: 13px;
-  font-weight: 700;
-  line-height: 1.35;
-  text-align: center;
-}
-
 .perfil-phone-inputs {
   display: grid;
   grid-template-columns: 92px minmax(0, 1fr);
@@ -83,11 +73,6 @@
 
 @media (min-width: 1024px) {
   .perfil-cancel-btn {
-    margin-right: 0;
-    margin-left: 0;
-  }
-
-  .perfil-submit-error {
     margin-right: 0;
     margin-left: 0;
   }

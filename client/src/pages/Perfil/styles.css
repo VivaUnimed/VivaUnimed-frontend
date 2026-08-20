@@ -23,7 +23,7 @@
   gap: 14px;
   justify-content: flex-start;
 
-  padding: 18px;
+  padding: 22px 18px;
 }
 
 .perfil-back-btn {
@@ -55,8 +55,8 @@
   flex-direction: column;
   align-items: center;
 
-  margin-top: 16px;
-  margin-bottom: 20px;
+  margin-top: 18px;
+  margin-bottom: 26px;
 }
 
 .perfil-photo-wrapper {
@@ -114,7 +114,7 @@
 .perfil-form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 
 .perfil-input-group {
@@ -125,22 +125,28 @@
 
 .perfil-input-group label {
   padding: 0 2px;
-  font-size: 1.1rem;
+
+  font-size: 11px;
   letter-spacing: 0.12em;
   font-weight: 800;
+
   color: #5f6368;
 }
 
 .perfil-input-group input {
-  height: 60px;
-  border: 1px solid #e5e7eb;
-  border-radius: 14px;
-  background: #ffffff;
+  height: 68px;
+
+  border: none;
+  border-radius: 0;
+
+  background: #f1f3f5;
+
   padding: 0 14px;
-  font-size: 1.6rem;
+
+  font-size: 18px;
   color: #2d2d2d;
+
   outline: none;
-  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 .perfil-date-input {
@@ -158,9 +164,9 @@
 }
 
 .perfil-save-btn {
-  height: 52px;
+  height: 58px;
 
-  margin: 20px 18px 0;
+  margin: 28px 26px 0;
 
   border: none;
   border-radius: 16px;
@@ -181,9 +187,9 @@
 }
 
 .perfil-logout-btn {
-  height: 48px;
+  height: 52px;
 
-  margin: 0 18px 20px;
+  margin: 0 26px 24px;
 
   border: none;
   border-radius: 16px;

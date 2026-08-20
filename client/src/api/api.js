@@ -1,4 +1,4 @@
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+const BASE_URL = '';
 
 const parseResponseBody = async (response) => {
   const contentType = response.headers.get('content-type') || '';
@@ -19,14 +19,36 @@ const parseResponseBody = async (response) => {
   return text;
 };
 
-const handleResponse = async (response) => {
-  // 1. Verifica se o token expirou ou é inválido
+const getErrorMessage = (errorData) => {
+  if (typeof errorData === 'string') {
+    return errorData;
+  }
+
+  return (
+    errorData?.message ||
+    errorData?.error ||
+    'Erro de comunicação com o servidor'
+  );
+};
+
+const handleResponse = async (response, options = {}) => {
+  const { isPublic = false } = options;
+
   if (response.status === 401) {
+    const errorData = await parseResponseBody(response);
+    const message = getErrorMessage(errorData);
+
+    // Se for rota pública, como login, cadastro ou reset,
+    // não deve dizer "sessão expirada".
+    if (isPublic) {
+      throw new Error(message || 'E-mail ou senha inválidos.');
+    }
+
     localStorage.removeItem('token');
     sessionStorage.removeItem('token');
+    localStorage.removeItem('user');
+    sessionStorage.removeItem('user');
 
-    // Redireciona para o login
-    // Adicionado um parâmetro 'expired=true' para avisar o usuário depois
     if (window.location.pathname !== '/login') {
       window.location.href = '/login?expired=true';
     }
@@ -36,12 +58,7 @@ const handleResponse = async (response) => {
 
   if (!response.ok) {
     const errorData = await parseResponseBody(response);
-    const message =
-      typeof errorData === 'string'
-        ? errorData
-        : errorData?.message || 'Erro de comunicação com o servidor';
-
-    throw new Error(message);
+    throw new Error(getErrorMessage(errorData));
   }
 
   if (response.status === 204) {
@@ -51,8 +68,9 @@ const handleResponse = async (response) => {
   return parseResponseBody(response);
 };
 
-// Helper para centralizar os headers
-const getHeaders = () => {
+const getHeaders = (options = {}) => {
+  const { useAuth = true } = options;
+
   const token =
     localStorage.getItem('token') || sessionStorage.getItem('token');
 
@@ -60,63 +78,47 @@ const getHeaders = () => {
     'Content-Type': 'application/json',
   };
 
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+  if (useAuth && token) {
+    headers.Authorization = `Bearer ${token}`;
   }
 
   return headers;
 };
 
-export const postRequest = async (endpoint, data) => {
-  try {
-    const response = await fetch(`${BASE_URL}${endpoint}`, {
-      method: 'POST',
-      headers: getHeaders(),
-      body: JSON.stringify(data),
-    });
+export const postRequest = async (endpoint, data, options = {}) => {
+  const response = await fetch(`${BASE_URL}${endpoint}`, {
+    method: 'POST',
+    headers: getHeaders(options),
+    body: JSON.stringify(data),
+  });
 
-    return await handleResponse(response);
-  } catch (error) {
-    throw new Error(error.message);
-  }
+  return await handleResponse(response, options);
 };
 
-export const putRequest = async (endpoint, data) => {
-  try {
-    const response = await fetch(`${BASE_URL}${endpoint}`, {
-      method: 'PUT',
-      headers: getHeaders(),
-      body: JSON.stringify(data),
-    });
+export const putRequest = async (endpoint, data, options = {}) => {
+  const response = await fetch(`${BASE_URL}${endpoint}`, {
+    method: 'PUT',
+    headers: getHeaders(options),
+    body: JSON.stringify(data),
+  });
 
-    return await handleResponse(response);
-  } catch (error) {
-    throw new Error(error.message);
-  }
+  return await handleResponse(response, options);
 };
 
-export const getRequest = async (endpoint) => {
-  try {
-    const response = await fetch(`${BASE_URL}${endpoint}`, {
-      method: 'GET',
-      headers: getHeaders(),
-    });
+export const getRequest = async (endpoint, options = {}) => {
+  const response = await fetch(`${BASE_URL}${endpoint}`, {
+    method: 'GET',
+    headers: getHeaders(options),
+  });
 
-    return await handleResponse(response);
-  } catch (error) {
-    throw new Error(error.message);
-  }
+  return await handleResponse(response, options);
 };
 
-export const deleteRequest = async (endpoint) => {
-  try {
-    const response = await fetch(`${BASE_URL}${endpoint}`, {
-      method: 'DELETE',
-      headers: getHeaders(),
-    });
+export const deleteRequest = async (endpoint, options = {}) => {
+  const response = await fetch(`${BASE_URL}${endpoint}`, {
+    method: 'DELETE',
+    headers: getHeaders(options),
+  });
 
-    return await handleResponse(response);
-  } catch (error) {
-    throw new Error(error.message);
-  }
+  return await handleResponse(response, options);
 };
